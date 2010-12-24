@@ -7,8 +7,6 @@ module Controller
 import Foundation
 import Settings
 import Yesod.Helpers.Static
-import Yesod.Helpers.Auth
-import Database.Persist.GenericSql
 
 -- Import all relevant handler modules here.
 import Handler.Root
@@ -32,7 +30,6 @@ getRobotsR = return $ RepPlain $ toContent "User-agent: *"
 -- migrations handled by Yesod.
 withFoundation :: (Application -> IO a) -> IO a
 withFoundation f = Settings.withConnectionPool $ \p -> do
-    runConnectionPool (runMigration migrateAll) p
     let h = Foundation s p
     toWaiApp h >>= f
   where

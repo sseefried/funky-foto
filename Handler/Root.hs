@@ -12,8 +12,7 @@ import Foundation
 -- inclined, or create a single monolithic file.
 getRootR :: Handler RepHtml
 getRootR = do
-    mu <- maybeAuth
     defaultLayout $ do
         h2id <- newIdent
-        setTitle "Recogniser homepage"
+        setTitle "Recogniser!"
         addWidget $(widgetFile "homepage")
