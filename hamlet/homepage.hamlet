@@ -1,2 +1,7 @@
-%h1 Hello
-%h2#$h2id$ You do not have Javascript enabled.
+%h1 Recogniser!
+%p!style="color:green" $output$
+                                                                                                    
+%form!enctype=$enctype$!method="post"
+  ^form^
+  %br
+    %input!type=submit!value="Upload"

@@ -1,6 +1,10 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell, OverloadedStrings, ScopedTypeVariables #-}
 module Handler.Root where
 
+-- standard libraries
+import Control.Applicative
+
+-- friends
 import Foundation
 
 -- This is a handler function for the GET request method on the RootR
@@ -12,7 +16,17 @@ import Foundation
 -- inclined, or create a single monolithic file.
 getRootR :: Handler RepHtml
 getRootR = do
+    (res, form, enctype) <- runFormGet $ uploadFileForm
+    output <- case res of
+      FormMissing   -> return ("You didn't specify a file" :: String)
+      FormFailure _ -> return "Please correct the errors below."
+      FormSuccess (Params imageFileName) -> do
+        return "How you doing?"
     defaultLayout $ do
-        h2id <- newIdent
-        setTitle "Recogniser!"
-        addWidget $(widgetFile "homepage")
+      setTitle "Recogniser!"
+      addWidget $(widgetFile "homepage")
+
+data Params = Params { imageFileName :: FileInfo }
+
+uploadFileForm :: Form s m Params
+uploadFileForm = fieldsToDivs $ Params <$> fileField "Image file"
