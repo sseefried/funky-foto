@@ -64,12 +64,14 @@ type Widget = GWidget Foundation Foundation
 -- usually require access to the FoundationRoute datatype. Therefore, we
 -- split these actions into two functions and place them in separate files.
 mkYesodData "Foundation" [$parseRoutes|
-/static StaticR Static getStatic
+/static             StaticR     Static getStatic
 
-/favicon.ico FaviconR GET
-/robots.txt RobotsR GET
+/favicon.ico        FaviconR    GET
+/robots.txt         RobotsR     GET
 
-/ RootR GET
+/                   HomeR       GET
+/run                RunR        POST
+/images/#String     ImageR      GET
 |]
 
 -- Please see the documentation for the Yesod typeclass. There are a number
