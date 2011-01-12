@@ -1,5 +1,5 @@
 name:              Recogniser
-version:           0.0.0
+version:           0.1.0
 license:           BSD3
 license-file:      LICENSE
 author:            Sean Seefried
@@ -9,7 +9,7 @@ description:       I'm sure you can say something clever here if you try.
 category:          Web
 stability:         Experimental
 cabal-version:     >= 1.6
-build-type:        Simple
+build-type:        Custom
 homepage:          http://Recogniser.yesodweb.com/
 
 Flag production
@@ -19,6 +19,7 @@ Flag production
 executable         simple-server
     if flag(production)
         Buildable: False
+    cpp-options:   -DPRODUCTION
     main-is:       simple-server.hs
     build-depends: base         >= 4       && < 5
                  , yesod        >= 0.6     && < 0.7

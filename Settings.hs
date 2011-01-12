@@ -1,5 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
+
+#include "settings.h"
+
 -- | Settings are centralized, as much as possible, into this file. This
 -- includes database connection settings, static file locations, etc.
 -- In addition, you can configure a number of different aspects of Yesod
@@ -37,7 +40,7 @@ approot :: String
 -- you would probably want it to be:
 -- > approot = "http://www.yesod.com"
 -- Please note that there is no trailing slash.
-approot = "http://localhost:3000"
+approot = CFG_APP_ROOT_STR
 #else
 approot = "http://localhost:3000"
 #endif
