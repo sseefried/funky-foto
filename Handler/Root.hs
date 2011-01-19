@@ -4,6 +4,7 @@ module Handler.Root where
 import Foundation
 
 import Data.Array.Accelerate      as Acc
+import Data.Array.Accelerate.Array.BlockCopy as ABC
 import Data.Array.Accelerate.CUDA as CUDA
 import Codec.BMP
 
@@ -11,7 +12,13 @@ import Data.ByteString            as BS
 import Data.ByteString.Lazy       as BSL
 
 import Control.Monad
+import IO
 
+-- Following four imports needed for bmpToArray and arrayToBmp
+import Foreign.C.String
+import Foreign.Ptr
+import Foreign.Marshal.Alloc
+import Foreign.Marshal.Array
 
 -- |'GET' homepage.
 --
@@ -40,14 +47,16 @@ postRunR = do
 
   -- process the file + save the ouput file
   bmpIn <- liftIO $ liftM (either (error . show) id) $ readBMP imageInName    -- FIX: Could return an error
-  let bmpOut = arrayToBmp $ processImage $ bmpToArray bmpIn
-  liftIO $ writeBMP imageOutName bmpOut
-{--
+
+  arrIn <- liftIO $ bmpToArray bmpIn
+  bmpOut <- liftIO $ arrayToBmp (processImage arrIn)
+
+--  liftIO $ writeBMP imageOutName bmpOut
+
  -- use this code if writeBMP hasn't been patched in Codec.BMP
   h <- liftIO $ openFile imageOutName WriteMode
   liftIO $ hPutBMP h bmpOut
   liftIO $ hClose h
---}
 
   -- render both input and output images
   defaultLayout $ do
@@ -87,18 +96,27 @@ processImage arr = CUDA.run job
 
 -- |Convert bitmap value to 3D accelerate array.
 --
-bmpToArray :: BMP -> Array DIM3 Word8
-bmpToArray bmp = fromList dim $ BS.unpack $ unpackBMPToRGBA32 bmp
+bmpToArray :: BMP -> IO (Array DIM3 Word8)
+bmpToArray bmp =
+  BS.useAsCString (unpackBMPToRGBA32 bmp) foo
   where
+    foo :: CString -> IO (Array DIM3 Word8)
+    foo cStr = blockCopyToArray dim ((), castPtr cStr)
     (w, h) = bmpDimensions bmp
     dim    = (Z :. h :. w :. 4)
 
-
 -- |Convert 3D accelerate array to bitmap.
 --
-arrayToBmp :: Array DIM3 Word8 -> BMP
-arrayToBmp arr = packRGBA32ToBMP w h $ BS.pack $ toList arr
+arrayToBmp :: Array DIM3 Word8 -> IO BMP
+arrayToBmp arr = do
+  let len = w*h*4
+  ptr <- mallocBytes len
+  foo arr ptr
+  bs <- BS.packCStringLen (castPtr ptr, len)
+  return $ packRGBA32ToBMP w h bs
   where
+    foo :: Array DIM3 Word8 -> Ptr Word8 -> IO ()
+    foo arr ptr = blockCopyFromArray arr ((), ptr)
     (Z :. h :. w :. _) = arrayShape arr
 
 
