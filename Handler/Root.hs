@@ -97,26 +97,15 @@ processImage arr = CUDA.run job
 -- |Convert bitmap value to 3D accelerate array.
 --
 bmpToArray :: BMP -> IO (Array DIM3 Word8)
-bmpToArray bmp =
-  BS.useAsCString (unpackBMPToRGBA32 bmp) foo
+bmpToArray bmp = byteStringsToArray dim ((), unpackBMPToRGBA32 bmp)
   where
-    foo :: CString -> IO (Array DIM3 Word8)
-    foo cStr = blockCopyToArray dim ((), castPtr cStr)
     (w, h) = bmpDimensions bmp
     dim    = (Z :. h :. w :. 4)
 
--- |Convert 3D accelerate array to bitmap.
---
 arrayToBmp :: Array DIM3 Word8 -> IO BMP
 arrayToBmp arr = do
-  let len = w*h*4
-  ptr <- mallocBytes len
-  foo arr ptr
-  bs <- BS.packCStringLen (castPtr ptr, len)
+  ((),bs) <- arrayToByteStrings arr
   return $ packRGBA32ToBMP w h bs
   where
-    foo :: Array DIM3 Word8 -> Ptr Word8 -> IO ()
-    foo arr ptr = blockCopyFromArray arr ((), ptr)
     (Z :. h :. w :. _) = arrayShape arr
-
 
