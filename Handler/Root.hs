@@ -86,7 +86,7 @@ processImage arr = CUDA.run job
 
     spin ix = let (Z :. y :. x :. c) :: (Z :. Exp Int :. Exp Int :. Exp Int) = Acc.unlift ix
               in
-                Acc.lift (Z :. y :. (constant w) - x :. c)
+                Acc.lift (Z :. y :. (constant w) - x - 1:. c)
 
 
 
