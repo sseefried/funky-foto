@@ -6,6 +6,7 @@ module Controller
 
 -- standard libraries
 import Control.Concurrent.MVar
+import Database.Persist.GenericSql
 
 -- friends
 import Foundation

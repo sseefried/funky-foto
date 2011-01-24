@@ -2,8 +2,16 @@
 
 #include "settings.h"
 
-import Controller
+-- standard libraries
 import Network.Wai.Handler.SimpleServer (run)
+import Database.Persist.GenericSql(runSqlPool, runMigration)
+
+-- friends
+import Model(migrateAll)
+import Controller
+import Settings(withConnectionPool)
 
 main :: IO ()
-main = putStrLn "Loaded" >> withFoundation (run CFG_APP_PORT)
+main = do
+  withConnectionPool $ \pool -> runSqlPool (runMigration migrateAll) pool
+  putStrLn "Loaded" >> withFoundation (run CFG_APP_PORT)

@@ -9,6 +9,7 @@ import System.Cmd
 
 -- friends
 import Foundation
+import Model
 
 -- Lists all the effects
 getEffectsR :: Handler RepHtml
@@ -16,23 +17,30 @@ getEffectsR  = undefined
 
 -- Show the effect (with source code, initially empty)
 getEffectR :: String -> Handler RepHtml
-getEffectR = undefined
+getEffectR name = do
+  -- get the effect from the database.
+  mbResult <- runDB $ do { getBy $ UniqueEffect name }
+  defaultLayout $ do
+    case mbResult of
+      Just (_,effect) -> addWidget $(widgetFile "effects/show")
+      Nothing         -> addWidget $(widgetFile "effects/not-found")
 
 -- Edit the effect
 getEditEffectR :: String -> Handler RepHtml
 getEditEffectR = undefined
 
--- Modifies an effect and returns the show page afterwards.
-putEffectR :: String -> Handler RepHtml
-putEffectR = undefined
+-- Creates or modifies an effect and returns the show page afterwards.
+putEffectR :: String -> Handler RepHtmlJson
+putEffectR name = do
+  (effectKey)   <- runDB $ do { insert (Effect name "empty") }
+  (Just effect) <- runDB $ get effectKey
+  defaultLayoutJson (do { addWidget $(widgetFile "effects/show") })
+                    (jsonMap [("name", jsonScalar name)])
+-- FIXME: What do we do in case of error?
 
 -- Deletes the effect and then shows the list of effects.
 deleteEffectR :: String -> Handler RepHtml
 deleteEffectR = undefined
-
--- Creates the (empty) effect
-postEffectR :: String -> Handler RepHtml
-postEffectR = undefined
 
 -- Shows the page for uploading files to run the effect
 getRunEffectR :: String -> Handler RepHtml
