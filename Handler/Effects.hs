@@ -32,11 +32,18 @@ getEditEffectR = undefined
 -- Creates or modifies an effect and returns the show page afterwards.
 putEffectR :: String -> Handler RepHtmlJson
 putEffectR name = do
-  (effectKey)   <- runDB $ do { insert (Effect name "empty") }
-  (Just effect) <- runDB $ get effectKey
+  mbCode <- lookupPostParam "code"
+  let code = case mbCode of { Just c  -> c; Nothing -> "no code" }
+  mbEffectAndKey <- runDB $ do { getBy (UniqueEffect name) }
+  (effectKey, effect) <- case mbEffectAndKey of
+    Just (key,effect) -> runDB $ do { update key [EffectCode code]
+                                    ; return (key, effect { effectCode = code }) }
+    Nothing -> do
+      effectKey   <- runDB $ do { insert (Effect name "insert code here") }
+      (Just effect) <- runDB $ get effectKey
+      return (effectKey, effect)
   defaultLayoutJson (do { addWidget $(widgetFile "effects/show") })
-                    (jsonMap [("name", jsonScalar name)])
--- FIXME: What do we do in case of error?
+                         (jsonMap [("name", jsonScalar name)])
 
 -- Deletes the effect and then shows the list of effects.
 deleteEffectR :: String -> Handler RepHtml
