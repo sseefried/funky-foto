@@ -4,12 +4,17 @@ module Controller
     ( withFoundation
     ) where
 
+-- standard libraries
+import Control.Concurrent.MVar
+
+-- friends
 import Foundation
 import Settings
 import Yesod.Helpers.Static
 
 -- Import all relevant handler modules here.
 import Handler.Root
+import Handler.Effects
 
 -- This line actually creates our YesodSite instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see
@@ -30,7 +35,8 @@ getRobotsR = return $ RepPlain $ toContent "User-agent: *"
 -- migrations handled by Yesod.
 withFoundation :: (Application -> IO a) -> IO a
 withFoundation f = Settings.withConnectionPool $ \p -> do
-    let h = Foundation s p
+    m <- newMVar ()
+    let h = Foundation s p m
     toWaiApp h >>= f
   where
     s = fileLookupDir Settings.staticdir typeByExt

@@ -1,1 +1,5 @@
 dist/
+*.bmp
+static/
+settings.h
+*.aes

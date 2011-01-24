@@ -1,8 +1,7 @@
 {-# LANGUAGE TemplateHaskell, OverloadedStrings, ScopedTypeVariables, TypeOperators #-}
 module Handler.Root where
 
-import Foundation
-
+-- standard libraries
 import Data.Array.Accelerate      as Acc
 import Data.Array.Accelerate.Array.BlockCopy as ABC
 import Data.Array.Accelerate.CUDA as CUDA
@@ -12,13 +11,11 @@ import Data.ByteString            as BS
 import Data.ByteString.Lazy       as BSL
 
 import Control.Monad
-import IO
+import System.IO
 
--- Following four imports needed for bmpToArray and arrayToBmp
-import Foreign.C.String
-import Foreign.Ptr
-import Foreign.Marshal.Alloc
-import Foreign.Marshal.Array
+-- friends
+import Foundation
+
 
 -- |'GET' homepage.
 --
@@ -27,7 +24,6 @@ getHomeR =
     defaultLayout $ do
       setTitle "Recogniser!"
       addWidget $(widgetFile "homepage")
-
 
 -- |'POST' to run page for processing an image.
 --
@@ -87,8 +83,6 @@ processImage arr = CUDA.run job
     spin ix = let (Z :. y :. x :. c) :: (Z :. Exp Int :. Exp Int :. Exp Int) = Acc.unlift ix
               in
                 Acc.lift (Z :. y :. (constant w) - x - 1:. c)
-
-
 
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Move the following features into a separate package for image I/O

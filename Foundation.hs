@@ -20,6 +20,7 @@ import Web.Routes.Site (Site (formatPathSegments))
 import Control.Monad (unless)
 import Text.Jasmine (minifym)
 import Database.Persist.GenericSql
+import Control.Concurrent.MVar
 
 -- friends
 -- import Model
@@ -34,6 +35,7 @@ import qualified Settings
 data Foundation = Foundation
     { getStatic :: Static -- ^ Settings for static file serving.
     , connPool :: Settings.ConnectionPool -- ^ Database connection pool.
+    , theVar :: MVar ()
     }
 
 -- | A useful synonym; most of the handler functions in your application
@@ -66,12 +68,18 @@ type Widget = GWidget Foundation Foundation
 mkYesodData "Foundation" [$parseRoutes|
 /static             StaticR     Static getStatic
 
-/favicon.ico        FaviconR    GET
-/robots.txt         RobotsR     GET
+/favicon.ico         FaviconR    GET
+/robots.txt          RobotsR     GET
 
-/                   HomeR       GET
-/run                RunR        POST
-/images/#String     ImageR      GET
+/                    HomeR       GET
+/run                 RunR        POST
+/images/#String      ImageR      GET
+
+/effects              EffectsR    GET
+/effects/#String      EffectR     GET POST PUT DELETE
+/effects/#String/edit EditEffectR GET
+/effects/#String/run  RunEffectR  GET POST
+
 |]
 
 -- Please see the documentation for the Yesod typeclass. There are a number
