@@ -3,3 +3,4 @@ dist/
 static/
 settings.h
 *.aes
+*.db3
