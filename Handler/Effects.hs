@@ -2,14 +2,18 @@
 module Handler.Effects where
 
 -- standard libraries
+import Control.Applicative
 import Control.Concurrent.MVar
 import Control.Monad
 import System.IO
 import System.Cmd
+import Data.List(intersperse)
+import Text.Hamlet
 
 -- friends
 import Foundation
 import Model
+
 
 -- Lists all the effects
 getListEffectsR :: Handler RepHtml
@@ -22,15 +26,35 @@ getShowEffectR name = do
   mbResult <- runDB $ do { getBy $ UniqueEffect name }
   case mbResult of
     Just (_,effect) -> showEffect effect
-    Nothing         -> defaultLayout $ addWidget $(widgetFile "effects/not-found")
+    Nothing         -> effectNotFound name
 
 showEffect :: Effect -> Handler RepHtml
 showEffect effect = defaultLayout $ addWidget $(widgetFile "effects/show")
 
--- Edit the effect
-getEditEffectR :: String -> Handler RepHtml
-getEditEffectR = undefined
+effectNotFound :: String -> Handler RepHtml
+effectNotFound name = defaultLayout $ addWidget $(widgetFile "effects/not-found")
 
+-- Edit the effect for the first time
+getEditEffectR :: String -> Handler RepHtml
+getEditEffectR name = do
+  mbResult <- runDB (getBy (UniqueEffect name))
+  case mbResult of
+    Just (key, effect) -> do
+      -- this is the first time we show the form so we don't care about the result type.
+      (_, form, encType, csrfHtml) <- runFormPost $ editFormlet effect
+      let info = ("" :: String)
+      defaultLayout $ addWidget $(widgetFile "effects/edit")
+    Nothing            -> effectNotFound name
+
+-- A very simple form. The only field you can edit is the code field.
+-- TODO: There appears to be no way in Yesod, so far, to set attributes on form fields.
+-- e.g. I want to size the textarea in the form below but can't yet.
+editFormlet :: Effect -> Form s m Effect
+editFormlet effect = do
+  fieldsToDivs $ Effect (effectName effect) <$>
+                  (unTextarea <$> textareaField "Code" (Just $ Textarea $ effectCode effect))
+-- The unTextArea turns the Textarea back into a String because Effect constructor requires
+-- second argument with that type.
 
 putCreateEffectR :: String -> Handler RepHtmlJson
 putCreateEffectR = createOrUpdateEffect
@@ -38,11 +62,11 @@ putCreateEffectR = createOrUpdateEffect
 postCreateEffectR :: String -> Handler RepHtmlJson
 postCreateEffectR = createOrUpdateEffect
 
-putUpdateEffectR :: String -> Handler RepHtmlJson
-putUpdateEffectR = createOrUpdateEffect
+putUpdateEffectR :: String -> Handler RepHtml
+putUpdateEffectR = updateEffect
 
-postUpdateEffectR :: String -> Handler RepHtmlJson
-postUpdateEffectR = createOrUpdateEffect
+postUpdateEffectR :: String -> Handler RepHtml
+postUpdateEffectR = updateEffect
 
 -- Creates or updates an effect and returns the show page afterwards.
 createOrUpdateEffect :: String -> Handler RepHtmlJson
@@ -60,6 +84,35 @@ createOrUpdateEffect name = do
   (RepHtml html) <- showEffect effect
   json <- jsonToContent $ jsonMap [("status", jsonScalar "success")]
   return $ RepHtmlJson html json
+
+
+updateEffect :: String -> Handler RepHtml
+updateEffect name = do
+  mbResult <- runDB $ getBy (UniqueEffect name)
+  case mbResult of
+     Just (key, effect) -> do
+       (res, form, encType, csrfHtml) <- runFormPost $ editFormlet effect
+       eResult <- case res of
+         FormMissing -> return (Left "Form is blank" :: Either String Effect)
+         FormFailure errors -> do
+           return (Left $ "There were some problems with the form")
+         FormSuccess effect' -> do
+           return (Right effect')
+       case eResult of
+         Left info' -> do
+           let info = information info'
+           defaultLayout $ addWidget $(widgetFile "effects/edit")
+         Right effect -> do
+           runDB $ replace key effect
+           showEffect effect
+     Nothing -> error "die die die"
+
+
+information :: String -> Html
+information infoStr =
+  if length infoStr > 0
+  then $(Foundation.hamletFile "info")-- [$hamlet|div.info $str$ |]
+  else ""
 
 -- Deletes the effect and then shows the list of effects.
 deleteDeleteEffectR :: String -> Handler RepHtml

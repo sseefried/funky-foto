@@ -1,3 +1,4 @@
 %h1 Effect '$effectName effect$'
 
 %p $effectCode effect$
+%a.small!href=@EditEffectR (effectName effect)@ Edit

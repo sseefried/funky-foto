@@ -4,6 +4,7 @@
         %title $pageTitle.pc$
         ^pageHead.pc^
     %body
+      %div.content
         $maybe mmsg msg
             #message $msg$
         ^pageBody.pc^

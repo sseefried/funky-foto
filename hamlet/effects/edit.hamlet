@@ -1,0 +1,10 @@
+%h1 Edit effect
+$info$
+%label Name 
+%br
+$effectName effect$
+
+%form!enctype=$encType$!action=@UpdateEffectR (effectName effect)@!method=POST
+  $csrfHtml$
+  ^form^
+  %input!type=submit!value="Save"
