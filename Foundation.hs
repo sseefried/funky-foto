@@ -75,10 +75,13 @@ mkYesodData "Foundation" [$parseRoutes|
 /run                 RunR        POST
 /images/#String      ImageR      GET
 
-/effects              EffectsR    GET
-/effects/#String      EffectR     GET PUT DELETE
-/effects/#String/edit EditEffectR GET
-/effects/#String/run  RunEffectR  GET POST
+/effects                       ListEffectsR            GET
+/effects/#String/show          ShowEffectR             GET
+/effects/#String/edit          EditEffectR             GET
+/effects/#String/create        CreateEffectR           POST PUT
+/effects/#String/update        UpdateEffectR           POST PUT
+/effects/#String/delete        DeleteEffectR           POST DELETE
+/effects/#String/run           RunEffectR              GET POST
 
 |]
 

@@ -12,26 +12,41 @@ import Foundation
 import Model
 
 -- Lists all the effects
-getEffectsR :: Handler RepHtml
-getEffectsR  = undefined
+getListEffectsR :: Handler RepHtml
+getListEffectsR  = undefined
 
 -- Show the effect (with source code, initially empty)
-getEffectR :: String -> Handler RepHtml
-getEffectR name = do
+getShowEffectR :: String -> Handler RepHtml
+getShowEffectR name = do
   -- get the effect from the database.
   mbResult <- runDB $ do { getBy $ UniqueEffect name }
-  defaultLayout $ do
-    case mbResult of
-      Just (_,effect) -> addWidget $(widgetFile "effects/show")
-      Nothing         -> addWidget $(widgetFile "effects/not-found")
+  case mbResult of
+    Just (_,effect) -> showEffect effect
+    Nothing         -> defaultLayout $ addWidget $(widgetFile "effects/not-found")
+
+showEffect :: Effect -> Handler RepHtml
+showEffect effect = defaultLayout $ addWidget $(widgetFile "effects/show")
 
 -- Edit the effect
 getEditEffectR :: String -> Handler RepHtml
 getEditEffectR = undefined
 
--- Creates or modifies an effect and returns the show page afterwards.
-putEffectR :: String -> Handler RepHtmlJson
-putEffectR name = do
+
+putCreateEffectR :: String -> Handler RepHtmlJson
+putCreateEffectR = createOrUpdateEffect
+
+postCreateEffectR :: String -> Handler RepHtmlJson
+postCreateEffectR = createOrUpdateEffect
+
+putUpdateEffectR :: String -> Handler RepHtmlJson
+putUpdateEffectR = createOrUpdateEffect
+
+postUpdateEffectR :: String -> Handler RepHtmlJson
+postUpdateEffectR = createOrUpdateEffect
+
+-- Creates or updates an effect and returns the show page afterwards.
+createOrUpdateEffect :: String -> Handler RepHtmlJson
+createOrUpdateEffect name = do
   mbCode <- lookupPostParam "code"
   let code = case mbCode of { Just c  -> c; Nothing -> "no code" }
   mbEffectAndKey <- runDB $ do { getBy (UniqueEffect name) }
@@ -42,12 +57,19 @@ putEffectR name = do
       effectKey   <- runDB $ do { insert (Effect name "insert code here") }
       (Just effect) <- runDB $ get effectKey
       return (effectKey, effect)
-  defaultLayoutJson (do { addWidget $(widgetFile "effects/show") })
-                         (jsonMap [("name", jsonScalar name)])
+  (RepHtml html) <- showEffect effect
+  json <- jsonToContent $ jsonMap [("status", jsonScalar "success")]
+  return $ RepHtmlJson html json
 
 -- Deletes the effect and then shows the list of effects.
-deleteEffectR :: String -> Handler RepHtml
-deleteEffectR = undefined
+deleteDeleteEffectR :: String -> Handler RepHtml
+deleteDeleteEffectR = deleteEffect
+
+postDeleteEffectR :: String -> Handler RepHtml
+postDeleteEffectR = deleteEffect
+
+deleteEffect :: String -> Handler RepHtml
+deleteEffect = undefined
 
 -- Shows the page for uploading files to run the effect
 getRunEffectR :: String -> Handler RepHtml
