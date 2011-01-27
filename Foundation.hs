@@ -33,9 +33,10 @@ import qualified Settings
 -- starts running, such as database connections. Every handler will have
 -- access to the data present here.
 data Foundation = Foundation
-    { getStatic :: Static -- ^ Settings for static file serving.
-    , connPool  :: Settings.ConnectionPool -- ^ Database connection pool.
-    , cudaLock  :: MVar ()
+    { getStatic         :: Static -- ^ Settings for static file serving.
+    , connPool          :: Settings.ConnectionPool -- ^ Database connection pool.
+    , cudaLock          :: MVar ()
+    , effectCodeWrapper :: String
     }
 
 -- | A useful synonym; most of the handler functions in your application

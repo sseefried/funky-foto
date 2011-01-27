@@ -3,7 +3,8 @@ module Handler.Effects where
 
 -- standard libraries
 import Control.Applicative
-import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Lazy       as BL
+import qualified Data.ByteString.Lazy.Char8 as C
 
 import Control.Concurrent.MVar
 import System.IO
@@ -175,6 +176,18 @@ getRunEffectR name =
 -- Submits and runs the effect with the image and shows the result.
 postResultEffectR :: String -> Handler RepHtml
 postResultEffectR name = do
+  -- Get the effect from the database.
+  mbResult <- runDB $ do { getBy $ UniqueEffect name }
+  case mbResult of
+    Just (_,effect) -> runEffect effect
+    Nothing         -> effectNotFound name
+
+
+runEffect :: Effect -> Handler RepHtml
+runEffect effect = do
+  foundation <- getYesod
+
+  -- Get the uploaded flie and save it to disk using its MD5 hash as the filename
   rr <- getRequest
   (_, files) <- liftIO $ reqRequestBody rr
   fi <- maybe notFound return $ lookup "file" files
@@ -185,10 +198,18 @@ postResultEffectR name = do
 
   liftIO $ BL.writeFile (imageFile imageIn) contents
 
+  -- Add the effect code to the wrapper, compile it and save the binary to disk
+  let code      = effectCode effect
+      effectSrc = "tmp/" ++ (base64md5 $ C.pack code) ++ ".hs"
+      effectExe = effectSrc ++ "-exe"
+
+  liftIO $ writeFile effectSrc $ (effectCodeWrapper foundation) ++ (effectCode effect)
+  ret <- liftIO $ runProcess "ghc" True ["--make", effectSrc, "-o", effectExe] Nothing
+  liftIO $ putStrLn ret
+
   -- Obtain the CUDA lock then run the effect.
-  s <- getYesod
-  liftIO $ withMVar (cudaLock s) $ \() -> do
-    _ <- liftIO $ runProcess "EffectWrapper" False [(imageFile imageIn), (imageFile imageOut)] Nothing
+  liftIO $ withMVar (cudaLock foundation) $ \() -> do
+    _ <- liftIO $ runProcess effectExe False [(imageFile imageIn), (imageFile imageOut)] Nothing
     return ()
 
   -- Render both input and result images.

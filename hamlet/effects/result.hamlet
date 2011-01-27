@@ -3,7 +3,7 @@
 %div
   %ul
     %li
-      %a!href=@RunEffectR.name@ Run the effect again
+      %a!href=@RunEffectR.effectName.effect@ Run the effect again
     %li
       %a!href=@ListEffectsR@ Look at other effects
 

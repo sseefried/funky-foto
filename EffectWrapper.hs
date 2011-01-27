@@ -22,7 +22,7 @@ main = do
   bmpIn  <- liftM (either (error . show) id) $ readBMP inFile
   arrIn  <- bmpToArray bmpIn
 
-  bmpOut <- arrayToBmp (effect arrIn)
+  bmpOut <- arrayToBmp (job arrIn)
   h      <- openFile outFile WriteMode
   hPutBMP h bmpOut
   hClose h
@@ -51,18 +51,8 @@ arrayToBmp arr = do
 -- The user's acutal effect
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--- |Use Acceleate CUDA backend to 'flip (spin)' the image.
---
-effect :: Array DIM3 Word8 -> Array DIM3 Word8
-effect arr = CUDA.run job
-  where
-    job = Acc.map (+1) (use arr) --Acc.backpermute dim spin (use arr)
-    dim = constant d
+job :: Array DIM3 Word8 -> Array DIM3 Word8
+job arr = CUDA.run $ effect $ use arr
 
-    d@(Z :. _ :. w :. _) = arrayShape arr
-
-    spin ix = let (Z :. y :. x :. c) :: (Z :. Exp Int :. Exp Int :. Exp Int) = Acc.unlift ix
-              in
-                Acc.lift (Z :. y :. (constant w) - x - 1:. c)
-
+effect :: Acc (Array DIM3 Word8) -> Acc (Array DIM3 Word8)
 

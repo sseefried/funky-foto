@@ -38,7 +38,11 @@ getRobotsR = return $ RepPlain $ toContent "User-agent: *"
 withFoundation :: (Application -> IO a) -> IO a
 withFoundation f = Settings.withConnectionPool $ \p -> do
     m <- newMVar ()
-    let h = Foundation s p m
+    w <- readFile "EffectWrapper.hs"
+    let h = Foundation { getStatic         = s
+                       , connPool          = p
+                       , cudaLock          = m
+                       , effectCodeWrapper = w }
     toWaiApp h >>= f
   where
     s = fileLookupDir Settings.staticdir typeByExt
