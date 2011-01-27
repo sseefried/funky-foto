@@ -9,7 +9,7 @@
           \ | $
           %a!href=@EditEffectR (effectName effect)@ Edit
           \ | $
-          %input!type=submit!value=Delete
+          %input!type=submit!value=Delete!onclick="return confirm('Are you sure?');"
 
 %hr
 ^newForm^

@@ -131,7 +131,7 @@ updateEffect name = do
            defaultLayout $ addWidget $(widgetFile "effects/edit")
          Right effect -> do
            runDB $ replace key effect
-           showEffect effect
+           redirect RedirectSeeOther (ShowEffectR $ effectName effect)
      Nothing -> error "die die die"-- FIXME: Need to handle this gracefully.
 
 
@@ -149,7 +149,9 @@ postDeleteEffectR :: String -> Handler RepHtml
 postDeleteEffectR = deleteEffect
 
 deleteEffect :: String -> Handler RepHtml
-deleteEffect = undefined
+deleteEffect name = do
+  runDB $ deleteBy $ UniqueEffect name
+  redirect RedirectSeeOther ListEffectsR
 
 -- Shows the page for uploading files to run the effect
 getRunEffectR :: String -> Handler RepHtml
