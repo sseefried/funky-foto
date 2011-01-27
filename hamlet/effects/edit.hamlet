@@ -8,3 +8,4 @@ $effectName effect$
   $csrfHtml$
   ^form^
   %input!type=submit!value="Save"
+  %a.small!href=@ShowEffectR (effectName effect)@ Cancel

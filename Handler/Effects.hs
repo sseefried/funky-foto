@@ -27,6 +27,7 @@ getListEffectsR  = do
   let effects = map snd results
   (_, form, encType, csrfHtml) <- runFormPost $ createFormlet Nothing
   let newForm = $(widgetFile "effects/new")
+      canCancel = False
       info = information ""
   defaultLayout $ addWidget $(widgetFile "effects/list")
 
@@ -86,6 +87,7 @@ createEffect = do
     FormMissing   -> return (Left "Name is blank" :: Either String String)
     FormFailure _ -> return (Left "There were some problems with the form")
     FormSuccess effectName -> return (Right effectName)
+  let canCancel = True
   case result of
     Left infoStr -> do
       let info = information infoStr
@@ -134,7 +136,6 @@ updateEffect name = do
            redirect RedirectSeeOther (ShowEffectR $ effectName effect)
      Nothing -> error "die die die"-- FIXME: Need to handle this gracefully.
 
-
 information :: String -> Html
 information infoStr =
   if length infoStr > 0
@@ -168,4 +169,3 @@ postRunEffectR _ = do
     defaultLayout $ do
       setTitle $ string "Waiting..."
       addWidget $(widgetFile "runEffect")
-

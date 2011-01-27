@@ -3,3 +3,5 @@ $info$
   $csrfHtml$
   ^form^
   %input!type=submit!value="Add"
+  $if canCancel 
+    %a.small!href=@ListEffectsR@ Cancel
