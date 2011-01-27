@@ -4,7 +4,7 @@ $info$
 %br
 $effectName effect$
 
-%form!enctype=$encType$!action=@UpdateEffectR (effectName effect)@!method=POST
+%form.effect!enctype=$encType$!action=@UpdateEffectR (effectName effect)@!method=POST
   $csrfHtml$
   ^form^
   %input!type=submit!value="Save"

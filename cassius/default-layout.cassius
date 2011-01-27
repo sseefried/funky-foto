@@ -34,3 +34,9 @@ a, a:visited
 pre.code
   border: 1px dashed #999;
   padding: 10px;
+  
+form.effect textarea
+  font-family: courier;
+  width: 800px;
+  height: 300px;
+  padding: 10px;
