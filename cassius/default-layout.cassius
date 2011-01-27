@@ -30,3 +30,7 @@ a, a:visited
 
 .small
   font-size: 10pt;
+  
+pre.code
+  border: 1px dashed #999;
+  padding: 10px;

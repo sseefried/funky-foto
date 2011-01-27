@@ -9,11 +9,15 @@ import System.IO
 import System.Cmd
 import Data.List(intersperse)
 import Text.Hamlet
+import Text.Printf
 
 -- friends
 import Foundation
 import Model
 
+
+defaultEffectCode :: String
+defaultEffectCode = "effect = id"
 
 -- Lists all the effects
 getListEffectsR :: Handler RepHtml
@@ -21,8 +25,10 @@ getListEffectsR  = do
   -- TODO: For now just return all effects. Pagination to come.
   results <- runDB $ selectList [] [] 1000 0
   let effects = map snd results
+  (_, form, encType, csrfHtml) <- runFormPost $ createFormlet Nothing
+  let newForm = $(widgetFile "effects/new")
+      info = information ""
   defaultLayout $ addWidget $(widgetFile "effects/list")
-
 
 -- Show the effect (with source code, initially empty)
 getShowEffectR :: String -> Handler RepHtml
@@ -56,40 +62,56 @@ getEditEffectR name = do
 -- e.g. I want to size the textarea in the form below but can't yet.
 editFormlet :: Effect -> Form s m Effect
 editFormlet effect = do
+  -- The unTextArea turns the Textarea back into a String because Effect constructor requires
+  -- second argument with that type.
   fieldsToDivs $ Effect (effectName effect) <$>
                   (unTextarea <$> textareaField "Code" (Just $ Textarea $ effectCode effect))
--- The unTextArea turns the Textarea back into a String because Effect constructor requires
--- second argument with that type.
 
-putCreateEffectR :: String -> Handler RepHtmlJson
-putCreateEffectR = createOrUpdateEffect
+-- A simple form for creating a new effect.
+createFormlet :: Maybe String -> Form s m String
+createFormlet s = fieldsToDivs $ stringField "New effect" s
 
-postCreateEffectR :: String -> Handler RepHtmlJson
-postCreateEffectR = createOrUpdateEffect
+
+putCreateEffectR :: Handler RepHtml
+putCreateEffectR = createEffect
+
+postCreateEffectR :: Handler RepHtml
+postCreateEffectR = createEffect
+
+-- Creates or updates an effect and returns the show page afterwards.
+createEffect :: Handler RepHtml
+createEffect = do
+  (res, form, encType, csrfHtml) <- runFormPost $ createFormlet Nothing
+  result <- case res of
+    FormMissing   -> return (Left "Name is blank" :: Either String String)
+    FormFailure _ -> return (Left "There were some problems with the form")
+    FormSuccess effectName -> return (Right effectName)
+  case result of
+    Left infoStr -> do
+      let info = information infoStr
+      defaultLayout $ addWidget $(widgetFile "effects/new")
+    Right name -> do
+      mbGet <- runDB $ getBy (UniqueEffect name)
+      case mbGet of
+        Nothing -> do
+          -- FIXME: Will only succeed if someone else hasn't inserted a record in the mean time.
+          -- Very unlikely but still possible.
+          effectKey <- runDB $ insert (Effect name defaultEffectCode)
+          -- FIXME: Very small change it's been deleted in mean time
+          (Just effect) <- runDB $ get effectKey
+          defaultLayout $ addWidget $(widgetFile "effects/show")
+        Just _ -> do
+          let info = information $ printf "An effect with name '%s' already exists!" name
+          defaultLayout $ addWidget $(widgetFile "effects/new")
+
+
+
 
 putUpdateEffectR :: String -> Handler RepHtml
 putUpdateEffectR = updateEffect
 
 postUpdateEffectR :: String -> Handler RepHtml
 postUpdateEffectR = updateEffect
-
--- Creates or updates an effect and returns the show page afterwards.
-createOrUpdateEffect :: String -> Handler RepHtmlJson
-createOrUpdateEffect name = do
-  mbCode <- lookupPostParam "code"
-  let code = case mbCode of { Just c  -> c; Nothing -> "no code" }
-  mbEffectAndKey <- runDB $ do { getBy (UniqueEffect name) }
-  (effectKey, effect) <- case mbEffectAndKey of
-    Just (key,effect) -> runDB $ do { update key [EffectCode code]
-                                    ; return (key, effect { effectCode = code }) }
-    Nothing -> do
-      effectKey   <- runDB $ do { insert (Effect name "insert code here") }
-      (Just effect) <- runDB $ get effectKey
-      return (effectKey, effect)
-  (RepHtml html) <- showEffect effect
-  json <- jsonToContent $ jsonMap [("status", jsonScalar "success")]
-  return $ RepHtmlJson html json
-
 
 updateEffect :: String -> Handler RepHtml
 updateEffect name = do
@@ -110,7 +132,7 @@ updateEffect name = do
          Right effect -> do
            runDB $ replace key effect
            showEffect effect
-     Nothing -> error "die die die"
+     Nothing -> error "die die die"-- FIXME: Need to handle this gracefully.
 
 
 information :: String -> Html

@@ -1,4 +1,11 @@
 %h1 Effect '$effectName effect$'
 
-%p $effectCode effect$
-%a.small!href=@EditEffectR (effectName effect)@ Edit
+%pre.code $effectCode effect$
+%form!action=@DeleteEffectR (effectName effect)@!method=POST
+  %span.small
+    &laquo; $
+    %a!href=@ListEffectsR@ List
+    \ | $
+    %a!href=@EditEffectR (effectName effect)@ Edit
+    \ | $
+    %input!type=submit!value=Delete
