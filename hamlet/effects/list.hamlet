@@ -1,0 +1,11 @@
+%h1 Effects
+%ul
+  $forall effects effect
+    %li 
+      %form!method=POST!action=@DeleteEffectR (effectName effect)@
+        $effectName effect$ 
+        %span.small 
+          %a!href=@EditEffectR (effectName effect)@ Edit
+          \ | $
+          %input!type=submit!value=Delete
+%a!href=#!onclick="alert('Not implemented')" Add

@@ -17,7 +17,12 @@ import Model
 
 -- Lists all the effects
 getListEffectsR :: Handler RepHtml
-getListEffectsR  = undefined
+getListEffectsR  = do
+  -- TODO: For now just return all effects. Pagination to come.
+  results <- runDB $ selectList [] [] 1000 0
+  let effects = map snd results
+  defaultLayout $ addWidget $(widgetFile "effects/list")
+
 
 -- Show the effect (with source code, initially empty)
 getShowEffectR :: String -> Handler RepHtml
