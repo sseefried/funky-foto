@@ -1,6 +1,4 @@
-%h1 Recogniser!
+%h1 Funky Foto!
 
-%form!method="post"!action=@RunR@!enctype=multipart/form-data
-  File name:
-  %input!type=file!name=file
-  %input!type=submit!value="Upload"
+%p
+  %a!href=@ListEffectsR@ Check out the funky effects or add your own!!

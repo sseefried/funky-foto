@@ -1,0 +1,6 @@
+%h1 Run the '$name$' effect!
+
+%form!method="post"!action=@ResultEffectR.name@!enctype=multipart/form-data
+  File name:
+  %input!type=file!name=file
+  %input!type=submit!value="Upload"

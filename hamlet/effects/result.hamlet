@@ -1,0 +1,14 @@
+%h1 Your result
+
+%div
+  %ul
+    %li
+      %a!href=@RunEffectR.name@ Run the effect again
+    %li
+      %a!href=@ListEffectsR@ Look at other effects
+
+%div
+  %img!src=@ImageR.imageIn@
+%div
+  %img!src=@ImageR.imageOut@
+

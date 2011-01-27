@@ -34,8 +34,8 @@ import qualified Settings
 -- access to the data present here.
 data Foundation = Foundation
     { getStatic :: Static -- ^ Settings for static file serving.
-    , connPool :: Settings.ConnectionPool -- ^ Database connection pool.
-    , theVar :: MVar ()
+    , connPool  :: Settings.ConnectionPool -- ^ Database connection pool.
+    , cudaLock  :: MVar ()
     }
 
 -- | A useful synonym; most of the handler functions in your application
@@ -66,14 +66,13 @@ type Widget = GWidget Foundation Foundation
 -- usually require access to the FoundationRoute datatype. Therefore, we
 -- split these actions into two functions and place them in separate files.
 mkYesodData "Foundation" [$parseRoutes|
-/static             StaticR     Static getStatic
+/static                        StaticR                 Static getStatic
 
-/favicon.ico         FaviconR    GET
-/robots.txt          RobotsR     GET
+/favicon.ico                   FaviconR                GET
+/robots.txt                    RobotsR                 GET
 
-/                    HomeR       GET
-/run                 RunR        POST
-/images/#String      ImageR      GET
+/                              HomeR                   GET
+/images/#String                ImageR                  GET
 
 
 
@@ -85,7 +84,8 @@ mkYesodData "Foundation" [$parseRoutes|
 /effects/#String/edit          EditEffectR             GET
 /effects/#String/update        UpdateEffectR           POST PUT
 /effects/#String/delete        DeleteEffectR           POST DELETE
-/effects/#String/run           RunEffectR              GET POST
+/effects/#String/run           RunEffectR              GET
+/effects/#String/result        ResultEffectR           POST
 
 |]
 

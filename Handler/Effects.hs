@@ -3,13 +3,17 @@ module Handler.Effects where
 
 -- standard libraries
 import Control.Applicative
+import qualified Data.ByteString.Lazy       as BL
+
 import Control.Concurrent.MVar
-import Control.Monad
 import System.IO
 import System.Cmd
 import Data.List(intersperse)
 import Text.Hamlet
 import Text.Printf
+import System.Posix.Types
+import System.Posix.IO
+import System.Posix.Process
 
 -- friends
 import Foundation
@@ -30,6 +34,7 @@ getListEffectsR  = do
       canCancel = False
       info = information ""
   defaultLayout $ addWidget $(widgetFile "effects/list")
+
 
 -- Show the effect (with source code, initially empty)
 getShowEffectR :: String -> Handler RepHtml
@@ -142,6 +147,7 @@ information infoStr =
   then $(Foundation.hamletFile "info")-- [$hamlet|div.info $str$ |]
   else ""
 
+
 -- Deletes the effect and then shows the list of effects.
 deleteDeleteEffectR :: String -> Handler RepHtml
 deleteDeleteEffectR = deleteEffect
@@ -154,18 +160,65 @@ deleteEffect name = do
   runDB $ deleteBy $ UniqueEffect name
   redirect RedirectSeeOther ListEffectsR
 
+
 -- Shows the page for uploading files to run the effect
 getRunEffectR :: String -> Handler RepHtml
-getRunEffectR = undefined
+getRunEffectR name =
+    defaultLayout $ do
+      setTitle $ string $ "Run '" ++ name ++ "'"
+      addWidget $(widgetFile "effects/run")
+
 
 -- Submits and runs the effect with the image and shows the result.
-postRunEffectR :: String -> Handler RepHtml
-postRunEffectR _ = do
-    s <- getYesod
-    liftIO $ withMVar (theVar s) $ \() -> do
-      System.IO.putStrLn "Taking the MVar"
-      system ("date +%S")
-      system "sleep 5"
-    defaultLayout $ do
-      setTitle $ string "Waiting..."
-      addWidget $(widgetFile "runEffect")
+postResultEffectR :: String -> Handler RepHtml
+postResultEffectR name = do
+  rr <- getRequest
+  (_, files) <- liftIO $ reqRequestBody rr
+  fi <- maybe notFound return $ lookup "file" files
+
+  let imageIn  = "in-"  ++ fileName fi
+      imageOut = "out-" ++ fileName fi
+
+  liftIO $ BL.writeFile imageIn $ fileContent fi
+
+  -- Obtain the CUDA lock then run the effect.
+  s <- getYesod
+  liftIO $ withMVar (cudaLock s) $ \() -> do
+    _ <- liftIO $ runProcess "EffectWrapper" False [imageIn, imageOut] Nothing
+    return ()
+
+  -- Render both input and result images.
+  defaultLayout $ do
+    setTitle $ string $ fileName fi
+    addWidget $(widgetFile "effects/result")
+
+
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- "Backend" processing code.
+
+-- | Run a separate process, redirecting stdout to the returned string.
+--
+runProcess :: FilePath
+           -> Bool
+           -> [String]
+           -> Maybe [(String, String)]
+           -> IO String
+runProcess cmd path args env = do
+  (outr, outw) <- createPipe
+  cpid   <- forkProcess $ doProcess outw
+
+  closeFd outw
+  hr     <- fdToHandle outr
+  outstr <- hGetContents hr
+  _      <- getProcessStatus True False cpid
+
+  return outstr
+
+  where
+    doProcess :: Fd -> IO ()
+    doProcess outw = do
+      dupTo outw stdOutput
+      dupTo outw stdError
+      executeFile cmd path args env
+

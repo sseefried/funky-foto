@@ -38,6 +38,7 @@ executable         simple-server
                  , hjsmin       >= 0.0.4   && < 0.1
                  , bmp
                  , accelerate
+                 , unix
     ghc-options:   -Wall -threaded
     extensions:    TemplateHaskell, QuasiQuotes, TypeFamilies
 

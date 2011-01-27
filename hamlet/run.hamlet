@@ -1,5 +1,8 @@
-%h1 Image Processed!
+%h1 Run!
 
-%img!src=@imageIn@
-%img!src=@imageOut@
+%h2 GHC Output
+%p $ghcOut$
+
+%h2 Prog Output
+%p $progOut$
 
