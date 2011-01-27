@@ -3,7 +3,7 @@ module Handler.Effects where
 
 -- standard libraries
 import Control.Applicative
-import qualified Data.ByteString.Lazy       as BL
+import qualified Data.ByteString.Lazy as BL
 
 import Control.Concurrent.MVar
 import System.IO
@@ -15,9 +15,12 @@ import System.Posix.Types
 import System.Posix.IO
 import System.Posix.Process
 
+import Yesod.Helpers.Static
+
 -- friends
 import Foundation
 import Model
+import Handler.Images
 
 
 defaultEffectCode :: String
@@ -176,15 +179,16 @@ postResultEffectR name = do
   (_, files) <- liftIO $ reqRequestBody rr
   fi <- maybe notFound return $ lookup "file" files
 
-  let imageIn  = "in-"  ++ fileName fi
-      imageOut = "out-" ++ fileName fi
+  let contents = fileContent fi
+      imageIn  = (base64md5 contents)
+      imageOut = imageIn ++ "-out"
 
-  liftIO $ BL.writeFile imageIn $ fileContent fi
+  liftIO $ BL.writeFile (imageFile imageIn) contents
 
   -- Obtain the CUDA lock then run the effect.
   s <- getYesod
   liftIO $ withMVar (cudaLock s) $ \() -> do
-    _ <- liftIO $ runProcess "EffectWrapper" False [imageIn, imageOut] Nothing
+    _ <- liftIO $ runProcess "EffectWrapper" False [(imageFile imageIn), (imageFile imageOut)] Nothing
     return ()
 
   -- Render both input and result images.

@@ -74,10 +74,6 @@ mkYesodData "Foundation" [$parseRoutes|
 /                              HomeR                   GET
 /images/#String                ImageR                  GET
 
-
-
-
-
 /effects                       ListEffectsR            GET
 /effects/create                CreateEffectR           POST PUT
 /effects/#String/show          ShowEffectR             GET
