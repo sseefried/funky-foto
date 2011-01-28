@@ -1,7 +1,7 @@
 %h1 Run the '$name$' effect!
 
 %form!method=POST!action=@ResultEffectR.name@!enctype=multipart/form-data
-  File name:
+  JPEG file:
   %input!type=file!name=file
   %input!type=submit!value="Get Funky!"
 

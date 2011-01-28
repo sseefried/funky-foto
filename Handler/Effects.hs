@@ -13,6 +13,7 @@ import Data.List(intersperse)
 import Text.Hamlet
 import Text.Printf
 import System.FilePath
+import System.Directory
 import System.Posix.Types
 import System.Posix.IO
 import System.Posix.Process
@@ -194,10 +195,12 @@ runEffect effect = do
   (_, files) <- liftIO $ reqRequestBody rr
   fi <- maybe notFound return $ lookup "file" files
 
-  let contents = fileContent fi
-      imageIn  = (base64md5 contents)
+  let contents     = fileContent fi
+      imageInHash  = (base64md5 contents)
+      imageInJpg   = imageInHash <.> "jpg"
+      imageInBmp   = imageInHash <.> "bmp"
 
-  liftIO $ BL.writeFile (imageFile' imageIn) contents
+  liftIO $ BL.writeFile (imageFile' imageInJpg) contents
 
   -- Add the effect code to the wrapper, compile it and save the binary to disk
   let code          = effectCode effect
@@ -210,11 +213,18 @@ runEffect effect = do
   ret <- liftIO $ runProcess "ghc" True ["--make", effectSrcFile, "-o", effectExeFile] Nothing
   liftIO $ putStrLn ret
 
-  -- Obtain the CUDA lock then run the effect.
-  let imageOut = imageIn ++ "-" ++ codeHash
+  -- Obtain the CUDA lock then run the effect. Use bitmap files as the intermediate
+  -- image file format. Remove the bitmap files on completion.
+  let imageOutHash = imageInHash ++ "-" ++ codeHash
+      imageOutBmp  = imageOutHash <.> "bmp"
+      imageOutJpg  = imageOutHash <.> "jpg"
+
+  liftIO $ jpgToBmp (imageFile' imageInJpg) (imageFile' imageInBmp)
   liftIO $ withMVar (cudaLock foundation) $ \() -> do
-    _ <- liftIO $ runProcess effectExeFile False [(imageFile' imageIn), (imageFile' imageOut)] Nothing
+    _ <- liftIO $ runProcess effectExeFile False [(imageFile' imageInBmp), (imageFile' imageOutBmp)] Nothing
     return ()
+  liftIO $ bmpToJpg (imageFile' imageOutBmp) (imageFile' imageOutJpg)
+  liftIO $ mapM removeFile $ map imageFile' [imageInBmp, imageOutBmp]
 
   -- Render both input and result images.
   defaultLayout $ do
