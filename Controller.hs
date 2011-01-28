@@ -5,8 +5,11 @@ module Controller
     ) where
 
 -- standard libraries
+import Control.Monad
 import Control.Concurrent.MVar
 import Database.Persist.GenericSql
+import System.Directory
+import System.FilePath
 
 -- friends
 import Foundation
@@ -37,12 +40,30 @@ getRobotsR = return $ RepPlain $ toContent "User-agent: *"
 -- migrations handled by Yesod.
 withFoundation :: (Application -> IO a) -> IO a
 withFoundation f = Settings.withConnectionPool $ \p -> do
-    m <- newMVar ()
-    w <- readFile "EffectWrapper.hs"
-    let h = Foundation { getStatic         = s
-                       , connPool          = p
-                       , cudaLock          = m
-                       , effectCodeWrapper = w }
-    toWaiApp h >>= f
+    lock    <- newMVar ()
+    wrapper <- readFile "EffectWrapper.hs"
+    cache   <- createCache
+
+    let static = fileLookupDir Settings.staticdir typeByExt
+        foundation = Foundation { getStatic         = static
+                                , connPool          = p
+                                , cudaLock          = lock
+                                , effectCodeWrapper = wrapper
+                                , cacheDir          = cache }
+
+    toWaiApp foundation >>= f
+
   where
-    s = fileLookupDir Settings.staticdir typeByExt
+    -- Temporary directory where images and code are stored
+    createCache = do
+      tmpDir <- getTemporaryDirectory
+      let cache = tmpDir </> "funky-fofo-cache"
+
+      exists <- doesDirectoryExist cache
+      when exists (removeDirectoryRecursive cache)
+
+      createDirectory cache
+      createDirectory $ cache </> "images"
+      createDirectory $ cache </> "code"
+
+      return cache

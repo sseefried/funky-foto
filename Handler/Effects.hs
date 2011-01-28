@@ -12,6 +12,7 @@ import System.Cmd
 import Data.List(intersperse)
 import Text.Hamlet
 import Text.Printf
+import System.FilePath
 import System.Posix.Types
 import System.Posix.IO
 import System.Posix.Process
@@ -186,6 +187,7 @@ postResultEffectR name = do
 runEffect :: Effect -> Handler RepHtml
 runEffect effect = do
   foundation <- getYesod
+  let imageFile' = imageFile (cacheDir foundation)
 
   -- Get the uploaded flie and save it to disk using its MD5 hash as the filename
   rr <- getRequest
@@ -194,22 +196,24 @@ runEffect effect = do
 
   let contents = fileContent fi
       imageIn  = (base64md5 contents)
-      imageOut = imageIn ++ "-out"
 
-  liftIO $ BL.writeFile (imageFile imageIn) contents
+  liftIO $ BL.writeFile (imageFile' imageIn) contents
 
   -- Add the effect code to the wrapper, compile it and save the binary to disk
-  let code      = effectCode effect
-      effectSrc = "tmp/" ++ (base64md5 $ C.pack code) ++ ".hs"
-      effectExe = effectSrc ++ "-exe"
+  let code          = effectCode effect
+      codeHash      = base64md5 $ C.pack code
+      codeDir       = (cacheDir foundation) </> "code"
+      effectSrcFile = codeDir </> codeHash <.> "hs"
+      effectExeFile = codeDir </> codeHash
 
-  liftIO $ writeFile effectSrc $ (effectCodeWrapper foundation) ++ (effectCode effect)
-  ret <- liftIO $ runProcess "ghc" True ["--make", effectSrc, "-o", effectExe] Nothing
+  liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ (effectCode effect)
+  ret <- liftIO $ runProcess "ghc" True ["--make", effectSrcFile, "-o", effectExeFile] Nothing
   liftIO $ putStrLn ret
 
   -- Obtain the CUDA lock then run the effect.
+  let imageOut = imageIn ++ "-" ++ codeHash
   liftIO $ withMVar (cudaLock foundation) $ \() -> do
-    _ <- liftIO $ runProcess effectExe False [(imageFile imageIn), (imageFile imageOut)] Nothing
+    _ <- liftIO $ runProcess effectExeFile False [(imageFile' imageIn), (imageFile' imageOut)] Nothing
     return ()
 
   -- Render both input and result images.

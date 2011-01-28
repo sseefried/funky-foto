@@ -37,6 +37,7 @@ data Foundation = Foundation
     , connPool          :: Settings.ConnectionPool -- ^ Database connection pool.
     , cudaLock          :: MVar ()
     , effectCodeWrapper :: String
+    , cacheDir          :: FilePath
     }
 
 -- | A useful synonym; most of the handler functions in your application
