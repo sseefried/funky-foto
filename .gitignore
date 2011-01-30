@@ -1,6 +1,6 @@
 dist/
-*.bmp
 static/
 settings.h
+deploy.h
 *.aes
 *.db3
