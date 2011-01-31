@@ -17,10 +17,12 @@ import System.Directory
 import System.Posix.Types
 import System.Posix.IO
 import System.Posix.Process
+import System.Exit
 
 import Yesod.Helpers.Static
 
 -- friends
+import Settings
 import Foundation
 import Model
 import Handler.Images
@@ -128,6 +130,7 @@ postUpdateEffectR = updateEffect
 
 updateEffect :: String -> Handler RepHtml
 updateEffect name = do
+  button <- lookupPostParam "SubmitCode"
   mbResult <- runDB $ getBy (UniqueEffect name)
   case mbResult of
      Just (key, effect) -> do
@@ -143,8 +146,28 @@ updateEffect name = do
            let info = information info'
            defaultLayout $ addWidget $(widgetFile "effects/edit")
          Right effect -> do
-           runDB $ replace key effect
-           redirect RedirectSeeOther (ShowEffectR $ effectName effect)
+           case button of
+             (Just "Preview") -> do
+               -- compile code
+               compileRes <- compileEffect (effectCode effect)
+               case compileRes of
+                 (Left err) -> do
+                   -- show error
+                   let info = information err
+                       preview = addHtml ""
+                   defaultLayout $ addWidget $(widgetFile "effects/edit")
+                 (Right binary) -> do
+                   -- show preview
+                   let info = information ("" :: String)
+                   outPreview <- runEffect binary Settings.previewImage
+                   defaultLayout $ do
+                     addWidget $(widgetFile "effects/edit")
+                     addWidget $(widgetFile "effects/preview")
+             (Just "Save") -> do
+               runDB $ replace key effect
+               redirect RedirectSeeOther (ShowEffectR $ effectName effect)
+             _ -> error "die - unknown submit button" -- FIXME: Need to handle this gracefully
+
      Nothing -> error "die die die"-- FIXME: Need to handle this gracefully.
 
 information :: String -> Html
@@ -181,56 +204,87 @@ postResultEffectR name = do
   -- Get the effect from the database.
   mbResult <- runDB $ do { getBy $ UniqueEffect name }
   case mbResult of
-    Just (_,effect) -> runEffect effect
+    Just (_,effect) -> run effect
     Nothing         -> effectNotFound name
 
+  where
+    run :: Effect -> Handler RepHtml
+    run effect = do
+      foundation <- getYesod
 
-runEffect :: Effect -> Handler RepHtml
-runEffect effect = do
+      -- Get the uploaded flie and save it to disk using its MD5 hash as the filename
+      rr <- getRequest
+      (_, files) <- liftIO $ reqRequestBody rr
+      fi <- maybe notFound return $ lookup "file" files
+
+      let contents     = fileContent fi
+          imageIn      = (base64md5 contents) <.> "jpg"
+      liftIO $ BL.writeFile (imageFile (cacheDir foundation) imageIn) contents
+
+      -- Add the effect code to the wrapper, compile it and save the binary to disk
+      compileRes <- compileEffect (effectCode effect)
+      case compileRes of
+        (Left err)     -> error err   -- FIXME: need to handle this gracefully
+        (Right binary) -> do
+          imageOut <- runEffect binary imageIn
+          -- Render both input and result images.
+          defaultLayout $ do
+            setTitle $ string $ fileName fi
+            addWidget $(widgetFile "effects/result")
+
+
+
+-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-- Helpers for compiling and running effects
+--
+
+
+-- | Compile the effect code. Return either the path to the compiled binary (Right) or
+--   the compiler error (Left).
+--
+compileEffect :: String -> Handler (Either String FilePath)
+compileEffect code = do
   foundation <- getYesod
-  let imageFile' = imageFile (cacheDir foundation)
-
-  -- Get the uploaded flie and save it to disk using its MD5 hash as the filename
-  rr <- getRequest
-  (_, files) <- liftIO $ reqRequestBody rr
-  fi <- maybe notFound return $ lookup "file" files
-
-  let contents     = fileContent fi
-      imageInHash  = (base64md5 contents)
-      imageInJpg   = imageInHash <.> "jpg"
-      imageInBmp   = imageInHash <.> "bmp"
-
-  liftIO $ BL.writeFile (imageFile' imageInJpg) contents
-
-  -- Add the effect code to the wrapper, compile it and save the binary to disk
-  let code          = effectCode effect
-      codeHash      = base64md5 $ C.pack code
+  let codeHash      = base64md5 $ C.pack code
       codeDir       = (cacheDir foundation) </> "code"
       effectSrcFile = codeDir </> codeHash <.> "hs"
       effectExeFile = codeDir </> codeHash
 
-  liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ (effectCode effect)
-  ret <- liftIO $ runProcess "ghc" True ["--make", effectSrcFile, "-o", effectExeFile] Nothing
-  liftIO $ putStrLn ret
+  exists <- liftIO $ doesFileExist effectExeFile
+  case exists of
+    True  -> liftIO $ putStrLn "already exists" >> return (Right effectExeFile)
+    False -> do
+      liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ code
+      res <- liftIO $ runProcess "ghc" True ["--make", effectSrcFile, "-o", effectExeFile] Nothing
 
-  -- Obtain the CUDA lock then run the effect. Use bitmap files as the intermediate
-  -- image file format. Remove the bitmap files on completion.
-  let imageOutHash = imageInHash ++ "-" ++ codeHash
-      imageOutBmp  = imageOutHash <.> "bmp"
-      imageOutJpg  = imageOutHash <.> "jpg"
+      case res of
+        (Just output) -> return (Left output)
+        Nothing       -> return (Right effectExeFile)
 
-  liftIO $ jpgToBmp (imageFile' imageInJpg) (imageFile' imageInBmp)
+
+-- | Obtain the CUDA lock then run the effect. Use bitmap files as the intermediate
+--   image file format. Remove the bitmap files on completion.
+--
+runEffect :: FilePath -> FilePath -> Handler FilePath
+runEffect effectBin jpgImg = do
+  foundation <- getYesod
+  scratchDir <- liftIO $ getTemporaryDirectory
+
+  let imageInHash  = (takeBaseName jpgImg)
+      imageInJpg   = jpgImg
+      imageOutJpg  = imageFile (cacheDir foundation) $ imageOutHash <.> "jpg"
+      imageOutHash = imageInHash ++ "-" ++ (takeBaseName effectBin)
+      imageInBmp   = scratchDir </> imageInHash <.> "bmp"
+      imageOutBmp  = scratchDir </> imageOutHash <.> "bmp"
+
+  liftIO $ jpgToBmp imageInJpg imageInBmp
   liftIO $ withMVar (cudaLock foundation) $ \() -> do
-    _ <- liftIO $ runProcess effectExeFile False [(imageFile' imageInBmp), (imageFile' imageOutBmp)] Nothing
+    _ <- liftIO $ runProcess effectBin False [imageInBmp, imageOutBmp] Nothing
     return ()
-  liftIO $ bmpToJpg (imageFile' imageOutBmp) (imageFile' imageOutJpg)
-  liftIO $ mapM removeFile $ map imageFile' [imageInBmp, imageOutBmp]
+  liftIO $ bmpToJpg imageOutBmp imageOutJpg
+  liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
 
-  -- Render both input and result images.
-  defaultLayout $ do
-    setTitle $ string $ fileName fi
-    addWidget $(widgetFile "effects/result")
-
+  return $ takeFileName imageOutJpg
 
 
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -242,7 +296,7 @@ runProcess :: FilePath
            -> Bool
            -> [String]
            -> Maybe [(String, String)]
-           -> IO String
+           -> IO (Maybe String)
 runProcess cmd path args env = do
   (outr, outw) <- createPipe
   cpid   <- forkProcess $ doProcess outw
@@ -250,9 +304,11 @@ runProcess cmd path args env = do
   closeFd outw
   hr     <- fdToHandle outr
   outstr <- hGetContents hr
-  _      <- getProcessStatus True False cpid
+  status <- getProcessStatus True False cpid
 
-  return outstr
+  case status of
+    (Just (Exited ExitSuccess)) -> return Nothing
+    _                           -> return (Just outstr)
 
   where
     doProcess :: Fd -> IO ()

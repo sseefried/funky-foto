@@ -7,5 +7,6 @@ $effectName effect$
 %form.effect!enctype=$encType$!action=@UpdateEffectR (effectName effect)@!method=POST
   $csrfHtml$
   ^form^
-  %input!type=submit!value="Save"
+  %input!type=submit!name="SubmitCode"!value="Save"
+  %input!type=submit!name="SubmitCode"!value="Preview"
   %a.small!href=@ShowEffectR (effectName effect)@ Cancel

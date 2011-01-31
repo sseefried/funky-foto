@@ -20,6 +20,7 @@ module Settings
     , approot
     , staticroot
     , staticdir
+    , previewImage
     ) where
 
 import qualified Text.Hamlet as H
@@ -65,6 +66,12 @@ staticdir = "static"
 -- To see how this value is used, see urlRenderOverride in Foundation.hs
 staticroot :: String
 staticroot = approot ++ "/static"
+
+-- Location of image file to use for effect preivews.
+--
+previewImage :: FilePath
+previewImage = "original.jpg"
+
 
 -- | The database connection string. The meaning of this string is backend-
 -- specific.

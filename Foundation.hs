@@ -74,6 +74,7 @@ mkYesodData "Foundation" [$parseRoutes|
 /robots.txt                    RobotsR                 GET
 
 /                              HomeR                   GET
+/original.jpg                  OriginalImageR          GET
 /images/#String                ImageR                  GET
 
 /effects                       ListEffectsR            GET

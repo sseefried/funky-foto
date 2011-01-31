@@ -9,11 +9,16 @@ import System.Cmd
 
 -- friends
 import Foundation
+import Settings
+
+
+-- | Return the un-altered preview image.
+--
+getOriginalImageR :: Handler ()
+getOriginalImageR = sendFile "image/jpg" Settings.previewImage
 
 
 -- | Retrieve image resources.
---   FIXME:
---      - support different image formats (e.g. png)
 --
 getImageR :: String -> Handler ()
 getImageR imgName = do
