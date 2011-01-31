@@ -32,7 +32,7 @@ defaultEffectCode :: String
 defaultEffectCode = "effect = id"
 
 -- Lists all the effects
-getListEffectsR :: Handler RepHtml
+getListEffectsR :: Handler RepHtmlJson
 getListEffectsR  = do
   -- TODO: For now just return all effects. Pagination to come.
   results <- runDB $ selectList [] [] 1000 0
@@ -41,7 +41,8 @@ getListEffectsR  = do
   let newForm = $(widgetFile "effects/new")
       canCancel = False
       info = information ""
-  defaultLayout $ addWidget $(widgetFile "effects/list")
+  let json = jsonList (map (jsonScalar . effectName) effects)
+  defaultLayoutJson (addWidget $(widgetFile "effects/list")) json
 
 
 -- Show the effect (with source code, initially empty)
