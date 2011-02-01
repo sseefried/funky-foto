@@ -1,5 +1,5 @@
 name:              Recogniser
-version:           0.1.0
+version:           0.2.0
 license:           BSD3
 license-file:      LICENSE
 author:            Sean Seefried
@@ -39,6 +39,7 @@ executable         simple-server
                  , bmp
                  , accelerate
                  , unix
+                 , filepath
     ghc-options:   -Wall -threaded
     extensions:    TemplateHaskell, QuasiQuotes, TypeFamilies
 

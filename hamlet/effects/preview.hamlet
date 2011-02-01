@@ -3,5 +3,5 @@
     %td
       %img!src=@OriginalImageR@
     %td
-      %img!src=@ImageR.outPreview@
+      %img!src=@PreviewImageR.(effectName effect)@
 

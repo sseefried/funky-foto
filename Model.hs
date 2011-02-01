@@ -10,7 +10,8 @@ import Database.Persist.GenericSql (mkMigrate)
 -- http://docs.yesodweb.com/book/persistent/
 share2 mkPersist (mkMigrate "migrateAll") [$persist|
 Effect
-    name String Eq -- an effect name. Unique.
-    code String Update -- the associated Accelerate code.
+    name      String  Eq        -- an effect name. Unique.
+    code      String  Update    -- the associated Accelerate code.
+    compiles  Bool    Eq Update -- 
     UniqueEffect name
 |]

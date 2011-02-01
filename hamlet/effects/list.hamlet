@@ -3,6 +3,7 @@
   $forall effects effect
     %li 
       %form!method=POST!action=@DeleteEffectR (effectName effect)@
+        %img!width=96!height=96!src=@PreviewImageR.(effectName effect)@
         $effectName effect$ 
         %span.small 
           %a!href=@ShowEffectR (effectName effect)@ Show

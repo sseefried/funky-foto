@@ -8,7 +8,7 @@
       %a!href=@ListEffectsR@ Look at other effects
 
 %div
-  %img!src=@ImageR.imageIn@
+  %img!src=@InputImageR.imageInHash@
 %div
-  %img!src=@ImageR.imageOut@
+  %img!src=@((ResultImageR name) imageInHash)@
 

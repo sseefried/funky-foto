@@ -21,6 +21,7 @@ module Settings
     , staticroot
     , staticdir
     , previewImage
+    , bugImage
     ) where
 
 import qualified Text.Hamlet as H
@@ -67,10 +68,13 @@ staticdir = "static"
 staticroot :: String
 staticroot = approot ++ "/static"
 
--- Location of image file to use for effect preivews.
+-- Location of image files to use for effect preivews.
 --
 previewImage :: FilePath
 previewImage = "original.jpg"
+
+bugImage :: FilePath
+bugImage = "bug.jpg"
 
 
 -- | The database connection string. The meaning of this string is backend-

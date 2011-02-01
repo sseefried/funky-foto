@@ -68,23 +68,27 @@ type Widget = GWidget Foundation Foundation
 -- usually require access to the FoundationRoute datatype. Therefore, we
 -- split these actions into two functions and place them in separate files.
 mkYesodData "Foundation" [$parseRoutes|
-/static                        StaticR                 Static getStatic
+/static                           StaticR                 Static getStatic
 
-/favicon.ico                   FaviconR                GET
-/robots.txt                    RobotsR                 GET
+/favicon.ico                      FaviconR                GET
+/robots.txt                       RobotsR                 GET
 
-/                              HomeR                   GET
-/original.jpg                  OriginalImageR          GET
-/images/#String                ImageR                  GET
+/                                 HomeR                   GET
 
-/effects                       ListEffectsR            GET
-/effects/create                CreateEffectR           POST PUT
-/effects/#String/show          ShowEffectR             GET
-/effects/#String/edit          EditEffectR             GET
-/effects/#String/update        UpdateEffectR           POST PUT
-/effects/#String/delete        DeleteEffectR           POST DELETE
-/effects/#String/run           RunEffectR              GET
-/effects/#String/result        ResultEffectR           POST
+/images/static/original           OriginalImageR          GET
+/images/static/bug                BugImageR               GET
+/images/results/#String/#String   ResultImageR            GET
+/images/previews/#String          PreviewImageR           GET
+/images/inputs/#String            InputImageR             GET
+
+/effects                          ListEffectsR            GET
+/effects/create                   CreateEffectR           POST PUT
+/effects/#String/show             ShowEffectR             GET
+/effects/#String/edit             EditEffectR             GET
+/effects/#String/update           UpdateEffectR           POST PUT
+/effects/#String/delete           DeleteEffectR           POST DELETE
+/effects/#String/run              RunEffectR              GET
+/effects/#String/result           ResultEffectR           POST
 
 |]
 

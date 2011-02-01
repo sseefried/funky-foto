@@ -7,7 +7,6 @@ module Controller
 -- standard libraries
 import Control.Monad
 import Control.Concurrent.MVar
-import Database.Persist.GenericSql
 import System.Directory
 import System.FilePath
 

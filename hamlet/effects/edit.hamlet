@@ -1,5 +1,4 @@
 %h1 Edit effect
-$info$
 %label Name 
 %br
 $effectName effect$
@@ -7,6 +6,5 @@ $effectName effect$
 %form.effect!enctype=$encType$!action=@UpdateEffectR (effectName effect)@!method=POST
   $csrfHtml$
   ^form^
-  %input!type=submit!name="SubmitCode"!value="Save"
-  %input!type=submit!name="SubmitCode"!value="Preview"
-  %a.small!href=@ShowEffectR (effectName effect)@ Cancel
+  %input!type=submit!value="Save and Try"
+  %a.small!href=@ShowEffectR (effectName effect)@ Done
