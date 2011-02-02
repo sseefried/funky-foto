@@ -149,6 +149,7 @@ updateEffect name = do
                defaultLayout $ do
                  addWidget $(widgetFile "effects/edit")
                  addHtml $ information err
+                 addWidget $(widgetFile "effects/preview")
              (Right _) -> do
                runDB $ replace key (effect {effectCompiles = True})
                defaultLayout $ do
