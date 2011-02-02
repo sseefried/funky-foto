@@ -55,8 +55,7 @@ withFoundation f = Settings.withConnectionPool $ \p -> do
   where
     -- Temporary directory where images and code are stored
     createCache = do
-      tmpDir <- getTemporaryDirectory
-      let cache = tmpDir </> "funky-fofo-cache"
+      cache <- getAppUserDataDirectory "funky-foto-cache"
 
       exists <- doesDirectoryExist cache
       when exists (removeDirectoryRecursive cache)
