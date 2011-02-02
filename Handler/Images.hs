@@ -27,13 +27,13 @@ import Model
 -- | Return the un-altered preview image.
 --
 getOriginalImageR :: Handler ()
-getOriginalImageR = sendFile "image/jpg" Settings.previewImage
+getOriginalImageR = sendFile "image/jpeg" Settings.previewImage
 
 
 -- | Return the "bug" image for generated images whose effect code doesn't compile.
 --
 getBugImageR :: Handler ()
-getBugImageR = sendFile "image/jpg" Settings.bugImage
+getBugImageR = sendFile "image/jpeg" Settings.bugImage
 
 
 -- | Retrieve preview image resources.
@@ -58,7 +58,7 @@ getPreviewImageR name = do
 getInputImageR :: String -> Handler ()
 getInputImageR imgHash = do
   foundation <- getYesod
-  sendFile "image/jpg" $ imageFile (cacheDir foundation) imgHash
+  sendFile "image/jpeg" $ imageFile (cacheDir foundation) imgHash
 
 
 -- | Save an input image to disk.
@@ -97,14 +97,14 @@ getGeneratedImage :: Effect -> FilePath -> FilePath -> Handler ()
 getGeneratedImage effect inImgFile outImgFile = do
   exists <- liftIO $ doesFileExist outImgFile
   case exists of
-    True  -> sendFile "image/jpg" outImgFile
+    True  -> sendFile "image/jpeg" outImgFile
     False -> do
       compileRes <- compileEffect effect
       case compileRes of
         (Left _)       -> getBugImageR
         (Right binary) -> do
           runEffect binary inImgFile outImgFile
-          sendFile "image/jpg" outImgFile
+          sendFile "image/jpeg" outImgFile
 
 
 
