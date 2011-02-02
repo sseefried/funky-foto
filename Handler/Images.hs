@@ -165,15 +165,13 @@ runEffect effectBin imageInJpg imageOutJpg = do
   scratchDir <- liftIO $ getTemporaryDirectory
   request    <- getRequest
 
-  let bmpHash      = reqNonce request
-      imageInBmp   = scratchDir </> bmpHash <.> "bmp"
-      imageOutBmp  = scratchDir </> bmpHash ++ "-out" <.> "bmp"
+  let imageInBmp   = scratchDir </> "in"  <.> "bmp"
+      imageOutBmp  = scratchDir </> "out" <.> "bmp"
 
-  liftIO $ jpgToBmp imageInJpg imageInBmp
   liftIO $ withMVar (cudaLock foundation) $ \() -> do
+    liftIO $ jpgToBmp imageInJpg imageInBmp
     _ <- runProcess effectBin False [imageInBmp, imageOutBmp] Nothing
-    return ()
-  liftIO $ bmpToJpg imageOutBmp imageOutJpg
+    liftIO $ bmpToJpg imageOutBmp imageOutJpg
   _ <- liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
 
   return ()
