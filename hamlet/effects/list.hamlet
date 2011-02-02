@@ -1,17 +1,24 @@
 %h1 Effects
-%ul
+%table
   $forall effects effect
-    %li 
+    %tr
       %form!method=POST!action=@DeleteEffectR (effectName effect)@
-        %img!width=96!height=96!src=@PreviewImageR.(effectName effect)@
-        $effectName effect$ 
-        %span.small 
-          %a!href=@ShowEffectR (effectName effect)@ Show
-          \ | $
-          %a!href=@EditEffectR (effectName effect)@ Edit
-          \ | $
-          %a!href=@RunEffectR (effectName effect)@ Run
-          \ | $
-          %input!type=submit!value=Delete!onclick="return confirm('Are you sure?');"
+        %td
+          %img!width=96!height=96!src=@PreviewImageR (effectName effect)@
+        %td
+          %table
+            %tr
+              %td
+                $effectName effect$
+            %tr
+              %td
+                %span.small
+                  %a!href=@ShowEffectR (effectName effect)@ Show
+                  \ | $
+                  %a!href=@EditEffectR (effectName effect)@ Edit
+                  \ | $
+                  %a!href=@RunEffectR (effectName effect)@ Run
+                  \ | $
+                  %input!type=submit!value=Delete!onclick="return confirm('Are you sure?');"
 %hr
 ^newForm^
