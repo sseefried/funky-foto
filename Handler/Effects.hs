@@ -22,7 +22,7 @@ getListEffectsR  = do
   -- TODO: For now just return all effects. Pagination to come.
   compilesParam <- lookupGetParam "compiles"
   let effectFilter = maybe [] (\val -> if val == "yes" then [EffectCompilesEq True] else []) compilesParam
-  results <- runDB $ selectList effectFilter [] 1000 0
+  results <- runDB $ selectList effectFilter [EffectNameAsc] 1000 0
   let effects = map snd results
   (_, form, encType, csrfHtml) <- runFormPost $ createFormlet Nothing
   let newForm = $(widgetFile "effects/new")
