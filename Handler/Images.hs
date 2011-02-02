@@ -36,6 +36,12 @@ getBugImageR :: Handler ()
 getBugImageR = sendFile "image/jpeg" Settings.bugImage
 
 
+-- | Return the "spinner" image for displaying whilst images are being generated.
+--
+getSpinnerImageR :: Handler ()
+getSpinnerImageR = sendFile "image/gif" Settings.spinnerImage
+
+
 -- | Retrieve preview image resources.
 --
 getPreviewImageR :: String -> Handler ()

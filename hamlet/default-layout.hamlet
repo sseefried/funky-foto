@@ -2,6 +2,7 @@
 %html
     %head
         %title $pageTitle.pc$
+        %script!src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"
         ^pageHead.pc^
     %body
       %div.content

@@ -2,6 +2,6 @@
   %tr
     %td
       %img!src=@OriginalImageR@
-    %td
-      %img!src=@PreviewImageR.(effectName effect)@
+    %td!height=384!width=384!align=center
+      %img#preview!src=@SpinnerImageR@
 

@@ -22,6 +22,7 @@ module Settings
     , staticdir
     , previewImage
     , bugImage
+    , spinnerImage
     ) where
 
 import qualified Text.Hamlet as H
@@ -75,6 +76,9 @@ previewImage = "original.jpg"
 
 bugImage :: FilePath
 bugImage = "bug.jpg"
+
+spinnerImage :: FilePath
+spinnerImage = "spinner.gif"
 
 
 -- | The database connection string. The meaning of this string is backend-
