@@ -5,6 +5,7 @@ module Handler.Images where
 import Control.Concurrent.MVar
 import qualified Data.ByteString.Lazy       as BL
 import qualified Data.ByteString.Lazy.Char8 as C
+import Data.List
 import System.IO
 import System.Directory
 import System.FilePath
@@ -144,12 +145,15 @@ compileEffect effect = do
   case exists of
     True  -> return (Right effectExeFile)
     False -> do
-      liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ (effectCode effect)
+      liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ (indent $ effectCode effect)
       res <- liftIO $ runProcess "ghc" True ["--make", effectSrcFile, "-o", effectExeFile] Nothing
 
       case res of
         (Just output) -> return (Left output)
         Nothing       -> return (Right effectExeFile)
+
+  where
+    indent = concat . intersperse "\n" . map ("    " ++) . lines
 
 
 -- | Obtain the CUDA lock then run the effect. Use bitmap files as the intermediate
