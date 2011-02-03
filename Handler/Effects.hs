@@ -188,26 +188,26 @@ getRunEffectR name =
 
 
 -- Submits and runs the effect with the image and shows the result.
-postResultEffectR :: String -> Handler RepHtml
+postResultEffectR :: String -> Handler RepHtmlJson
 postResultEffectR name = do
   mbResult <- runDB $ do { getBy $ UniqueEffect name }
   case mbResult of
     Just (_,effect) -> showResults effect
-    Nothing         -> effectNotFound name
-
+    Nothing         -> do
+      let json = jsonMap [("image-hash", jsonScalar "error")]
+      defaultLayoutJson (addWidget $(widgetFile "effects/not-found")) json
   where
-    showResults :: Effect -> Handler RepHtml
+    showResults :: Effect -> Handler RepHtmlJson
     showResults effect = do
-      -- Get the uploaded flie and save it to disk
+      -- Get the uploaded file and save it to disk
       rr <- getRequest
       (_, files) <- liftIO $ reqRequestBody rr
       fi <- maybe notFound return $ lookup "file" files
       _  <- saveInputImage fi
-
-
       -- Render both input and result images.
       let imageInHash = imageHash fi
-      defaultLayout $ do
+      let json = jsonMap [("image-hash", jsonScalar imageInHash) ]
+      flip defaultLayoutJson json $ do
         setTitle $ string $ fileName fi
         addWidget $(widgetFile "effects/result")
 

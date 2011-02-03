@@ -85,14 +85,12 @@ getResultImageR :: String -> String -> Handler ()
 getResultImageR name inImgHash = do
   foundation <- getYesod
   mbResult   <- runDB $ do { getBy $ UniqueEffect name }
-
   case mbResult of
     Nothing         -> getBugImageR
     Just (_,effect) -> do
       let effectHash    = codeHash effect
           inputImgFile  = imageFile (cacheDir foundation) inImgHash
           resultImgFile = imageFile (cacheDir foundation) (effectHash ++ "-" ++ inImgHash)
-
       getGeneratedImage effect inputImgFile resultImgFile
 
 
