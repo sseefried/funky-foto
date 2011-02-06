@@ -167,7 +167,6 @@ runEffect :: FilePath -> FilePath -> FilePath -> Handler ()
 runEffect effectBin imageInJpg imageOutJpg = do
   foundation <- getYesod
   scratchDir <- liftIO $ getTemporaryDirectory
-  request    <- getRequest
 
   let imageInBmp   = scratchDir </> "in"  <.> "bmp"
       imageOutBmp  = scratchDir </> "out" <.> "bmp"
