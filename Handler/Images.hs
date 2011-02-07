@@ -53,8 +53,8 @@ scaledDimensions Mobile = Just (44, 44)
 
 -- | Return the un-altered preview image.
 --
-getOriginalImageR :: Handler ()
-getOriginalImageR = sendJpeg Settings.previewImage
+getOriginalImageR :: ImageSize -> Handler ()
+getOriginalImageR size = getScaledImage size Settings.previewImage
 
 
 -- | Return the "bug" image for generated images whose effect code doesn't compile.

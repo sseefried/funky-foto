@@ -1,7 +1,7 @@
 %table
   %tr
     %td
-      %img!src=@OriginalImageR@
+      %img!src=@OriginalImageR Normal@
     %td!height=384!width=384!align=center
       %img#preview!src=@SpinnerImageR@
 

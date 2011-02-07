@@ -95,7 +95,7 @@ mkYesodData "Foundation" [$parseRoutes|
 
 /                                     HomeR                   GET
 
-/images/static/original               OriginalImageR          GET
+/images/static/#ImageSize/original    OriginalImageR          GET
 /images/static/#ImageSize/bug         BugImageR               GET
 /images/static/spinner                SpinnerImageR           GET
 /images/results/#String/#String       ResultImageR            GET
