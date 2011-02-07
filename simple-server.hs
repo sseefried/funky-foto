@@ -14,4 +14,4 @@ import Settings(withConnectionPool)
 main :: IO ()
 main = do
   withConnectionPool $ \pool -> runSqlPool (runMigration migrateAll) pool
-  putStrLn "Loaded" >> withFoundation (run CFG_APP_PORT)
+  putStrLn "Loaded" >> withFoundation (run 80)

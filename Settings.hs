@@ -39,11 +39,7 @@ import System.Directory (doesFileExist)
 -- so this value must be accurate to create valid links.
 approot :: String
 #ifdef PRODUCTION
--- You probably want to change this. If your domain name was "yesod.com",
--- you would probably want it to be:
--- > approot = "http://www.yesod.com"
--- Please note that there is no trailing slash.
-approot = CFG_APP_ROOT_STR
+approot = "http://funkyfotoapp.com"
 #else
 approot = "http://localhost:3000"
 #endif
