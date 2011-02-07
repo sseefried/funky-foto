@@ -1,1 +1,1 @@
-%div.info $infoStr$
+%div.info $Textarea infoStr$
