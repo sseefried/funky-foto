@@ -1,4 +1,6 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings, ScopedTypeVariables, TypeOperators #-}
+{-# LANGUAGE CPP, TemplateHaskell, OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables, TypeOperators #-}
+
 module Handler.Images
   (
     -- Route Handlers
@@ -207,8 +209,13 @@ compileEffect effect = do
   case exists of
     True  -> return (Right effectExeFile)
     False -> do
+#ifdef HAS_CUDA
+      let backend = "CUDA"
+#else
+      let backend = "Interpreter"
+#endif
       liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ (indent $ effectCode effect)
-      res <- liftIO $ runProcess "ghc" True ["--make", effectSrcFile, "-o", effectExeFile] Nothing
+      res <- liftIO $ runProcess "ghc" True ["--make", "-DBACKEND=" ++ backend, effectSrcFile, "-o", effectExeFile] Nothing
 
       case res of
         (Just output) -> return (Left output)

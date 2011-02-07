@@ -1,10 +1,10 @@
-{-# LANGUAGE ScopedTypeVariables, TypeOperators #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, TypeOperators #-}
 
 module Main where
 
 import Data.Array.Accelerate                  as Acc
 import Data.Array.Accelerate.Array.BlockCopy  as ABC
-import Data.Array.Accelerate.CUDA             as CUDA
+import Data.Array.Accelerate.BACKEND          as BACKEND
 
 import Codec.BMP
 
@@ -72,7 +72,7 @@ toRgb = Acc.replicate (constant (Z :. All :. All :. (4::Int)))
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 job :: Array DIM3 Word8 -> Array DIM3 Word8
-job arr = CUDA.run $ Acc.map (intToWord8) $ effect $ Acc.map (word8ToInt) $ use arr
+job arr = BACKEND.run $ Acc.map (intToWord8) $ effect $ Acc.map (word8ToInt) $ use arr
   where
     -- Useful values to bring into scope
     arrDim       = arrayShape arr

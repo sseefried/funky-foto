@@ -16,9 +16,15 @@ Flag production
     Description:   Build the production executable.
     Default:       False
 
+Flag cuda
+    Description:   Build for a target that supports CUDA.
+    Default:       True
+
 executable         simple-server
     if flag(production)
         Buildable: False
+    if flag(cuda)
+        cpp-options:   -DHAS_CUDA
     cpp-options:   -DPRODUCTION
     main-is:       simple-server.hs
     build-depends: base         >= 4       && < 5
@@ -46,8 +52,10 @@ executable         simple-server
 executable         devel-server
     if flag(production)
         Buildable: False
-    else
-        build-depends: wai-handler-devel >= 0.1.0 && < 0.2
+    if flag(cuda)
+        cpp-options:   -DHAS_CUDA
+
+    build-depends: wai-handler-devel >= 0.1.0 && < 0.2
     main-is:       devel-server.hs
     ghc-options:   -Wall -O2
 
