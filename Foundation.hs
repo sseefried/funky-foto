@@ -5,6 +5,7 @@ module Foundation
     , resourcesFoundation
     , Handler
     , Widget
+    , ImageSize(..)
     , module Yesod
     , module Settings
 --    , module Model
@@ -48,6 +49,25 @@ type Handler = GHandler Foundation Foundation
 -- will need to be of this type.
 type Widget = GWidget Foundation Foundation
 
+-- An enumeration of the various sizes that the preview image resource is
+-- respresented.
+data ImageSize
+  = Normal       -- ^Original image size
+  | Thumb        -- ^Image size for list page
+  | Mobile       -- ^Image size for iPhone app
+  deriving (Show, Eq, Read)
+
+instance SinglePiece ImageSize where
+  toSinglePiece Normal  = "normal"
+  toSinglePiece Thumb   = "thumb"
+  toSinglePiece Mobile  = "mobile"
+
+  fromSinglePiece "normal" = Right Normal
+  fromSinglePiece "thumb"  = Right Thumb
+  fromSinglePiece "mobile" = Right Mobile
+  fromSinglePiece _        = Left "Unsupported image size"
+
+
 -- This is where we define all of the routes in our application. For a full
 -- explanation of the syntax, please see:
 -- http://docs.yesodweb.com/book/web-routes-quasi/
@@ -68,30 +88,31 @@ type Widget = GWidget Foundation Foundation
 -- usually require access to the FoundationRoute datatype. Therefore, we
 -- split these actions into two functions and place them in separate files.
 mkYesodData "Foundation" [$parseRoutes|
-/static                           StaticR                 Static getStatic
+/static                               StaticR                 Static getStatic
 
-/favicon.ico                      FaviconR                GET
-/robots.txt                       RobotsR                 GET
+/favicon.ico                          FaviconR                GET
+/robots.txt                           RobotsR                 GET
 
-/                                 HomeR                   GET
+/                                     HomeR                   GET
 
-/images/static/original           OriginalImageR          GET
-/images/static/bug                BugImageR               GET
-/images/static/spinner            SpinnerImageR           GET
-/images/results/#String/#String   ResultImageR            GET
-/images/previews/#String          PreviewImageR           GET
-/images/inputs/#String            InputImageR             GET
+/images/static/original               OriginalImageR          GET
+/images/static/#ImageSize/bug         BugImageR               GET
+/images/static/spinner                SpinnerImageR           GET
+/images/results/#String/#String       ResultImageR            GET
+/images/previews/#ImageSize/#String   PreviewImageR           GET
+/images/inputs/#String                InputImageR             GET
 
-/effects                          ListEffectsR            GET
-/effects/create                   CreateEffectR           POST PUT
-/effects/#String/show             ShowEffectR             GET
-/effects/#String/edit             EditEffectR             GET
-/effects/#String/update           UpdateEffectR           POST PUT
-/effects/#String/delete           DeleteEffectR           POST DELETE
-/effects/#String/run              RunEffectR              GET
-/effects/#String/result           ResultEffectR           POST
+/effects                              ListEffectsR            GET
+/effects/create                       CreateEffectR           POST PUT
+/effects/#String/show                 ShowEffectR             GET
+/effects/#String/edit                 EditEffectR             GET
+/effects/#String/update               UpdateEffectR           POST PUT
+/effects/#String/delete               DeleteEffectR           POST DELETE
+/effects/#String/run                  RunEffectR              GET
+/effects/#String/result               ResultEffectR           POST
 
 |]
+
 
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.

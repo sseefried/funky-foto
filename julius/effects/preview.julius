@@ -1,7 +1,7 @@
 $(function(){
   $(document).ready(function(){
-     $.get('@PreviewImageR.(effectName effect)@', function(){
-      $("#preview").attr("src", "@PreviewImageR.(effectName effect)@");
+     $.get('@((PreviewImageR Normal) (effectName effect))@', function(){
+      $("#preview").attr("src", "@((PreviewImageR Normal) (effectName effect))@");
     });
    });
 });

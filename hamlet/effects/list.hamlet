@@ -4,7 +4,7 @@
     %tr
       %form!method=POST!action=@DeleteEffectR (effectName effect)@
         %td
-          %img!width=96!height=96!src=@PreviewImageR (effectName effect)@
+          %img!src=@((PreviewImageR Thumb) (effectName effect))@
         %td
           %table
             %tr
