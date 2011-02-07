@@ -58,14 +58,3 @@ executable         devel-server
     build-depends: wai-handler-devel >= 0.1.0 && < 0.2
     main-is:       devel-server.hs
     ghc-options:   -Wall -O2
-
-executable         fastcgi
-    if flag(production)
-        Buildable: True
-        build-depends: wai-handler-fastcgi >= 0.2.2 && < 0.3
-    else
-        Buildable: False
-    cpp-options:   -DPRODUCTION
-    main-is:       fastcgi.hs
-    ghc-options:   -Wall -threaded
-    extensions:    TemplateHaskell, QuasiQuotes, TypeFamilies
