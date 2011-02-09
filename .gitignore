@@ -1,5 +1,4 @@
 dist/
-static/
 settings.h
 deploy.h
 *.aes

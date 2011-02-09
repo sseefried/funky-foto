@@ -1,24 +1,20 @@
-%h1 Effects
+%h1 Effects / $
+  %strong go ahead, try one.
 %table
-  $forall effects effect
-    %tr
-      %form!method=POST!action=@DeleteEffectR (effectName effect)@
-        %td
-          %img!src=@((PreviewImageR Thumb) (effectName effect))@
-        %td
-          %table
-            %tr
-              %td
-                $effectName effect$
-            %tr
-              %td
-                %span.small
-                  %a!href=@ShowEffectR (effectName effect)@ Show
-                  \ | $
-                  %a!href=@EditEffectR (effectName effect)@ Edit
-                  \ | $
-                  %a!href=@RunEffectR (effectName effect)@ Run
-                  \ | $
-                  %input!type=submit!value=Delete!onclick="return confirm('Are you sure?');"
-%hr
+  %ul.effects
+    $forall effects effect
+      %li.effect
+        %div
+          %form!method=POST!action=@DeleteEffectR (effectName effect)@
+            %a!href=@RunEffectR (effectName effect)@
+              %img!src=@((PreviewImageR Thumb) (effectName effect))@!width="180"!height="180"
+            %h3 $effectName effect$
+            %span.controls
+              %a!href=@ShowEffectR (effectName effect)@ Show
+              \ | $
+              %a!href=@EditEffectR (effectName effect)@ Edit
+              \ | $
+              %a!href=@RunEffectR (effectName effect)@ Run
+              \ | $
+              %input.custom!type=submit!value=Delete!onclick="return confirm('Are you sure?');"
 ^newForm^

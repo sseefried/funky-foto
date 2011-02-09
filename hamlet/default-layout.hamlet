@@ -3,9 +3,30 @@
     %head
         %title $pageTitle.pc$
         %script!src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"
+        %link!rel="stylesheet"!href="/static/master.css"!type="text/css"!media="screen"!title="no title"!charset="utf-8"
         ^pageHead.pc^
     %body
-      %div.content
-        $maybe mmsg msg
-            #message $msg$
-        ^pageBody.pc^
+      %div#wrap
+        %div#header
+          %div#header-inner
+            %div
+              %a#logo!href=@ListEffectsR@!title="Take me home!"
+            %div#top-nav
+              %ul.top-nav
+                %li.selected
+                  %a!href=@ListEffectsR@ Effects
+                %li
+                  %a!href="#" About
+
+        %div#wrap-inner
+          %div#content
+            $maybe mmsg msg
+                #message $msg$
+            ^pageBody.pc^
+            %div!style="clear: both; height: 1px; line-height: 1px;"
+      %div#footer
+        %div#footer-inner
+          %ul
+            %li
+              %a!href="" &copy; NICTA 2011
+      
