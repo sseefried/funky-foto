@@ -47,8 +47,8 @@ import Model
 --
 scaledDimensions :: ImageSize -> Maybe (Int, Int)
 scaledDimensions Normal = Nothing
-scaledDimensions Thumb  = Just (96, 96)
-scaledDimensions Mobile = Just (44, 44)
+scaledDimensions Thumb  = Just (180, 180)
+scaledDimensions Mobile = Just (44,  44)
 
 
 -- | Return the un-altered preview image.
