@@ -79,3 +79,5 @@ job arr = BACKEND.run $ Acc.map (intToWord8) $ effect $ Acc.map (word8ToInt) $ u
     (Z:.h:.w:.d) = arrDim
 
     effect :: Acc (Array DIM3 Int) -> Acc (Array DIM3 Int)
+
+{-# LINE 1 "Code.hs" #-}
