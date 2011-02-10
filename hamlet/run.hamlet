@@ -1,8 +1,0 @@
-%h1 Run!
-
-%h2 GHC Output
-%p $ghcOut$
-
-%h2 Prog Output
-%p $progOut$
-

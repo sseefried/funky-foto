@@ -5,11 +5,8 @@ module Handler.Root where
 import Foundation
 
 
--- | Show homepage.
+-- | Root page redirects immediately to effects list page.
 --
 getHomeR :: Handler RepHtml
-getHomeR =
-    defaultLayout $ do
-      setTitle "Funky Foto!"
-      addWidget $(widgetFile "homepage")
+getHomeR = redirect RedirectSeeOther ListEffectsR
 

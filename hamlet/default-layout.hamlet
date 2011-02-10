@@ -10,7 +10,7 @@
         %div#header
           %div#header-inner
             %div
-              %a#logo!href=@ListEffectsR@!title="Take me home!"
+              %a#logo!href=@HomeR@!title="Take me home!"
             %div#top-nav
               %ul.top-nav
                 %li.selected
