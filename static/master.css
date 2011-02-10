@@ -205,8 +205,8 @@ ul li .controls { clear: #4083a9;}
 .add-effect button.add {  padding-left: 43px; background: url(gfx/add_button.jpg) top left no-repeat; line-height: 38px; height: 40px; padding-right: 60px; font-size: 1.2em; color: #333; } 
 .add-effect button.add:hover {  padding-left: 43px; background: url(gfx/add_button2.jpg) top left no-repeat;  padding-right: 60px; font-size: 1.2em; color: #777;cursor: pointer;} 
 
-.add-effect button.getfunky {  padding-left: 33px; background: url(gfx/getfunky_button.jpg) top left no-repeat; line-height: 38px; height: 40px; padding-right: 60px; font-size: 1.2em; color: #333; } 
-.add-effect button.getfunky:hover {; background: url(gfx/getfunky_button_down.jpg) top left no-repeat;  color: #000;cursor: pointer;}
+.add-effect button.get-funky {  padding-left: 33px; background: url(gfx/getfunky_button.jpg) top left no-repeat; line-height: 38px; height: 40px; padding-right: 60px; font-size: 1.2em; color: #333; } 
+.add-effect button.get-funky:hover {; background: url(gfx/getfunky_button_down.jpg) top left no-repeat;  color: #000;cursor: pointer;}
 
 /** Code Container **/
 .code-container { font-family: courier; line-height: 16px; font-size: 14px;}

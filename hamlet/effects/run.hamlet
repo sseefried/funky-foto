@@ -1,16 +1,20 @@
-%h1 Run the '$name$' effect!
 
-%form!method=POST!action=@ResultEffectR.name@!enctype=multipart/form-data
-  JPEG file:
-  %input!type=file!name=file
-  %input!type=submit!value="Get Funky!"
+%ul.breadcrumb
+  %li
+    %a!href=@ListEffectsR@ Return to list &raquo;
+%h1 Run Effect / $
+  %strong $name$
+  
 
-%br
+%div.add-effect
+  %h2 Upload a JPEG image
+  %form!method=POST!action=@ResultEffectR.name@!enctype=multipart/form-data
+    %input!type=file!name=file
+    %button.get-funky GET FUNKY!
 
-%span.small
-  &laquo; $
-  %a!href=@ListEffectsR@ List
-  \ | $
+
+
+%div.controls
   %a!href=@ShowEffectR.name@ Show
   \ | $
   %a!href=@EditEffectR.name@ Edit

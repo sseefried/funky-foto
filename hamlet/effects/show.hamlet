@@ -1,4 +1,5 @@
-%h1 Effect '$effectName effect$'
+%h1 Effect / $
+  %strong $effectName effect$
 
 %pre.code $effectCode effect$
 %form!action=@DeleteEffectR (effectName effect)@!method=POST
