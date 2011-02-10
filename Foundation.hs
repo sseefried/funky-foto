@@ -22,6 +22,7 @@ import Control.Monad (unless)
 import Text.Jasmine (minifym)
 import Database.Persist.GenericSql
 import Control.Concurrent.MVar
+import Control.Monad
 
 -- friends
 -- import Model
@@ -94,6 +95,7 @@ mkYesodData "Foundation" [$parseRoutes|
 /robots.txt                           RobotsR                 GET
 
 /                                     HomeR                   GET
+/about                                AboutR                  GET
 
 /images/static/#ImageSize/original    OriginalImageR          GET
 /images/static/#ImageSize/bug         BugImageR               GET
@@ -120,11 +122,25 @@ instance Yesod Foundation where
     approot _ = Settings.approot
 
     defaultLayout widget = do
-        mmsg <- getMessage
-        pc <- widgetToPageContent $ do
-            widget
-            addCassius $(Settings.cassiusFile "default-layout")
-        hamletToRepHtml $(Settings.hamletFile "default-layout")
+      subRoute    <- getCurrentRoute
+      subToMaster <- getRouteToMaster
+      let masterRoute :: Maybe (Route Foundation)
+          masterRoute = (liftM subToMaster) subRoute
+          isAboutR = isAboutPage masterRoute
+
+      mmsg  <- getMessage
+      pc <- widgetToPageContent $ do
+        widget
+        addCassius $(Settings.cassiusFile "default-layout")
+      hamletToRepHtml $(Settings.hamletFile "default-layout")
+
+      where
+        -- We only have two top-level sections: Effects and About. This is a
+        -- simple way of determining which one we're in so we can highlight it
+        -- correctly using the "selected" class.
+        isAboutPage :: Maybe (Route Foundation) -> Bool
+        isAboutPage (Just AboutR) = True
+        isAboutPage _             = False
 
     -- This is done to provide an optimization for serving static files from
     -- a separate domain. Please see the staticroot setting in Settings.hs

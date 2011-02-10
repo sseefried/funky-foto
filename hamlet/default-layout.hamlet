@@ -13,10 +13,18 @@
               %a#logo!href=@HomeR@!title="Take me home!"
             %div#top-nav
               %ul.top-nav
-                %li.selected
-                  %a!href=@ListEffectsR@ Effects
-                %li
-                  %a!href="#" About
+                $if isAboutR
+                  %li
+                    %a!href=@ListEffectsR@ Effects
+                $else
+                  %li.selected
+                    %a!href=@ListEffectsR@ Effects
+                $if isAboutR
+                  %li.selected
+                    %a!href=@AboutR@ About
+                $else
+                  %li
+                    %a!href=@AboutR@ About
 
         %div#wrap-inner
           %div#content

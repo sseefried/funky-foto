@@ -10,3 +10,8 @@ import Foundation
 getHomeR :: Handler RepHtml
 getHomeR = redirect RedirectSeeOther ListEffectsR
 
+
+-- | 'About' page.
+--
+getAboutR :: Handler RepHtml
+getAboutR = defaultLayout $ addWidget $(widgetFile "about")
