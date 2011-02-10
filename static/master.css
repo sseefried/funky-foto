@@ -168,7 +168,10 @@ ul.effects h3 { font-size: 20px; font-weight: bold;}
 ul.effects h3 a { color: #333;}
 ul.effects h3 a:hover { color: #666;}
 ul li.effect div { padding: 18px; background: #fff; border: 1px solid #e5e5e5;}
-ul li.effect img { float: left; margin-right: 20px; margin-bottom: 18px;}   
+ul li.effect img { float: left; margin-right: 20px; margin-bottom: 18px;}
+
+/** Large effects */
+ul.large-effects li.effect { float: left;  padding: 8px; margin: 10px;  background: url(gfx/shadow3.png) bottom right no-repeat;}  
 
 /** Show / Edit Effect **/
 ul.effect-show { clear: both;  overflow: auto;}           
@@ -226,5 +229,16 @@ ul li .controls { clear: #4083a9;}
   overflow: auto;
 }
 
+.info {
+  border: 2px dashed #f33;
+  background: #FDD;
+  padding: 10px;
+  color: #C00;
+  margin: 10px;
+  font-family: courier;
+}
+
 .edit-effect button.get-funky {  padding-left: 24px; background: url(gfx/getfunky_button.jpg) top left no-repeat; line-height: 38px; height: 40px; padding-right: 60px; font-size: 1.2em; color: #333; } 
 .edit-effect button.get-funky:hover {; background: url(gfx/getfunky_button_down.jpg) top left no-repeat;  color: #000;cursor: pointer;}
+
+.errors { color: #333; font-weight: bold };
