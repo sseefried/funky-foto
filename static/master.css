@@ -193,8 +193,15 @@ ul li .controls a:hover, ul li .controls input:hover {  cursor: pointer; backgro
 ul li .controls { clear: #4083a9;}
 
 /** Add Effect **/
+.add-effect label {  margin: 12px 0 15px 0;
+                     font-size: 1.4em;
+                     line-height: 1;
+                     color: #333;
+                     font-weight: bold;}
 .add-effect { clear: both; margin-top: 20px; border-top: 2px solid #dadada;line-height: 35px;}
+.add-effect div.required, .add-effect div.special-button-container { display: inline;}
 .add-effect input { font-size: 1.6em; padding: 2px; color: #666; margin-right: 10px;}    
+.add-effect input[type="text"] { width: 300px;}
 .add-effect button.add {  padding-left: 43px; background: url(gfx/add_button.jpg) top left no-repeat; line-height: 38px; height: 40px; padding-right: 60px; font-size: 1.2em; color: #333; } 
 .add-effect button.add:hover {  padding-left: 43px; background: url(gfx/add_button2.jpg) top left no-repeat;  padding-right: 60px; font-size: 1.2em; color: #777;cursor: pointer;} 
 

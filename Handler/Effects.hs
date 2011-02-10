@@ -76,7 +76,7 @@ editFormlet effect = do
 
 -- A simple form for creating a new effect.
 createFormlet :: Maybe String -> Form s m String
-createFormlet s = fieldsToDivs $ stringField "New effect" s
+createFormlet s = fieldsToDivs $ stringField "Add new effect" s
 
 
 putCreateEffectR :: Handler RepHtml
