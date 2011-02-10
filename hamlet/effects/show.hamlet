@@ -8,7 +8,7 @@
 
 ^preview^
 %h2 Code
-%div.code-container $effectCode effect$
+%pre.code-container $effectCode effect$
 %form!action=@DeleteEffectR (effectName effect)@!method=POST
   %div.controls
     %a!href=@EditEffectR (effectName effect)@ Edit
