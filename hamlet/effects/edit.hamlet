@@ -1,10 +1,9 @@
-%h1 Edit effect
-%label Name 
-%br
-$effectName effect$
+%h1 Edit effect / $
+  %strong $effectName effect$
 
-%form.effect!enctype=$encType$!action=@UpdateEffectR (effectName effect)@!method=POST
+%form.edit-effect!enctype=$encType$!action=@UpdateEffectR (effectName effect)@!method=POST
   $csrfHtml$
   ^form^
-  %input!type=submit!value="Save and Try"
-  %a.small!href=@ShowEffectR (effectName effect)@ Done
+  %div.controls 
+    %button.get-funky Save and Try
+    %a.small!href=@ShowEffectR (effectName effect)@ Done

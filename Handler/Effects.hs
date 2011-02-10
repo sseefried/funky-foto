@@ -43,8 +43,8 @@ getShowEffectR name = do
 
 showEffect :: Effect -> Handler RepHtml
 showEffect effect = defaultLayout $ do
+  let preview = $(widgetFile "effects/preview")
   addWidget $(widgetFile "effects/show")
-  addWidget $(widgetFile "effects/preview")
 
 effectNotFound :: String -> Handler RepHtml
 effectNotFound name = defaultLayout $ addWidget $(widgetFile "effects/not-found")
@@ -107,15 +107,10 @@ createEffect = do
           effectKey <- runDB $ insert (Effect name defaultEffectCode True)
           -- FIXME: Very small change it's been deleted in mean time
           (Just effect) <- runDB $ get effectKey
-          defaultLayout $ do
-            addWidget $(widgetFile "effects/show")
-            addWidget $(widgetFile "effects/preview")
+          showEffect effect
         Just _ -> do
           let info = information $ printf "An effect with name '%s' already exists!" name
           defaultLayout $ addWidget $(widgetFile "effects/new")
-
-
-
 
 putUpdateEffectR :: String -> Handler RepHtml
 putUpdateEffectR = updateEffect

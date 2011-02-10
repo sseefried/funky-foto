@@ -50,7 +50,7 @@ table {
 }                              
 
 /** custom buttons **/
-button, input.custom { background: none; border: 0; color: #ccc;}                                     
+button, input.custom { background: none; border: 0; color: #4083a9;}                                     
 
 /** LI Reset **/
 
@@ -193,7 +193,7 @@ ul li .controls a:hover, ul li .controls input:hover {  cursor: pointer; backgro
 ul li .controls { clear: #4083a9;}
 
 /** Add Effect **/
-.add-effect label {  margin: 12px 0 15px 0;
+.add-effect label, .edit-effect label {  margin: 12px 0 15px 0;
                      font-size: 1.4em;
                      line-height: 1;
                      color: #333;
@@ -211,3 +211,20 @@ ul li .controls { clear: #4083a9;}
 /** Code Container **/
 .code-container { font-family: courier; line-height: 16px; font-size: 14px;}
 .code-container { border: 2px dashed #ccc; padding: 15px; margin: 15px; background: #fff; overflow: auto;}
+
+/* Edit form */
+.edit-effect textarea { 
+  width: 900px; 
+  height: 400px;
+  font-family: courier;
+  line-height: 16px;
+  font-size: 14px;
+  border: 2px dashed #ccc;
+  padding: 15px;
+  margin: 15px;
+  background: #fff;
+  overflow: auto;
+}
+
+.edit-effect button.get-funky {  padding-left: 24px; background: url(gfx/getfunky_button.jpg) top left no-repeat; line-height: 38px; height: 40px; padding-right: 60px; font-size: 1.2em; color: #333; } 
+.edit-effect button.get-funky:hover {; background: url(gfx/getfunky_button_down.jpg) top left no-repeat;  color: #000;cursor: pointer;}
