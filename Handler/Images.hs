@@ -24,6 +24,7 @@ import Control.Concurrent.MVar
 import qualified Data.ByteString.Lazy       as BL
 import qualified Data.ByteString.Lazy.Char8 as C
 import Data.List
+import Data.Char
 
 import System.Directory
 import System.FilePath
@@ -181,10 +182,20 @@ imageFile cacheD imgName = cacheD </> "images" </> imgName <.> "jpg"
 imageHash :: FileInfo -> String
 imageHash = base64md5 . fileContent
 
--- | Produce a hash of an effect's code string.
+
+-- | Produce a hash of an effect's code string:
+--   The returned hash value will be a valid Haskell module name. That is, the first
+--   character will be a capital letter, and all other characters will either be
+--   alphanumeric or an underscore.
 --
 codeHash :: Effect -> String
-codeHash effect = 'M' : (base64md5 $ C.pack (effectCode effect))
+codeHash effect = tidy $ base64md5 $ C.pack (effectCode effect)
+  where
+    tidy s = "E" ++ (map validChars s)
+
+    validChars c | isAlphaNum c = c
+    validChars _                = '_'
+
 
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Helpers for compiling and running effects
