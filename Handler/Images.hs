@@ -28,17 +28,11 @@ import Data.List
 import System.Directory
 import System.FilePath
 import System.Cmd
-import Data.Char
-
-
 
 import System.Plugins as Plugins
 import Text.Printf
 
 import Yesod.Helpers.Static
-
-
-
 
 -- friends
 import Foundation

@@ -22,10 +22,9 @@ import Control.Monad (unless)
 import Text.Jasmine (minifym)
 import Database.Persist.GenericSql
 import Control.Concurrent.MVar
-import Control.Monad
+import Control.Monad (liftM)
 
 -- friends
--- import Model
 import Settings (hamletFile, cassiusFile, juliusFile, widgetFile)
 import qualified Settings
 

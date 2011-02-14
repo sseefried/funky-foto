@@ -6,7 +6,6 @@ import Data.Array.Accelerate as Acc
 import Data.Array.Accelerate.Array.BlockCopy
 import Control.Monad
 import Codec.BMP
-import Data.ByteString
 import System.IO
 #ifdef HAS_CUDA
 import Data.Array.Accelerate.CUDA as Backend
@@ -34,9 +33,9 @@ arrayToBmp :: FilePath -> Array DIM3 Word8 -> IO ()
 arrayToBmp bmpFile arr = do
   ((), bs) <- arrayToByteStrings arr
   let bmp = packRGBA32ToBMP w h bs
-  h <- openFile bmpFile WriteMode
-  hPutBMP h bmp
-  hClose h
+  handle <- openFile bmpFile WriteMode
+  hPutBMP handle bmp
+  hClose handle
   where
     (Z :. h :. w :. _) = arrayShape arr
 
