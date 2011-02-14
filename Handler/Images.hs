@@ -28,7 +28,7 @@ import Data.List
 import System.Directory
 import System.FilePath
 import System.Cmd
-import Char
+import Data.Char
 
 
 
