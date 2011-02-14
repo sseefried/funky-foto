@@ -38,6 +38,8 @@ import Text.Printf
 import Yesod.Helpers.Static
 
 
+
+
 -- friends
 import Foundation
 import Settings
@@ -185,12 +187,10 @@ imageFile cacheD imgName = cacheD </> "images" </> imgName <.> "jpg"
 imageHash :: FileInfo -> String
 imageHash = base64md5 . fileContent
 
-
 -- | Produce a hash of an effect's code string.
 --
 codeHash :: Effect -> String
-codeHash effect = base64md5 $ C.pack (effectCode effect)
-
+codeHash effect = 'M' : (base64md5 $ C.pack (effectCode effect))
 
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Helpers for compiling and running effects
@@ -203,7 +203,6 @@ compileEffect :: Effect -> Handler (Either String FilePath)
 compileEffect effect = do
   foundation <- getYesod
   let hash          = codeHash effect
-      modName       = let (x:xs) = hash in (toUpper x : xs)
       codeDir       = (cacheDir foundation) </> "code"
       effectSrcFile = codeDir </> hash <.> "hs"
       effectObjectFile = codeDir </> hash <.> "o"
@@ -212,17 +211,8 @@ compileEffect effect = do
   case exists of
     True  -> return (Right effectObjectFile)
     False -> do
-#ifdef HAS_CUDA
-      let backend = "CUDA"
-#else
-      let backend = "Interpreter"
-#endif
       liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ (indent $ effectCode effect)
-
-
-      res <- liftIO $ Plugins.make effectSrcFile ["-DBACKEND=" ++ backend, "-DMODULE_NAME=" ++ modName]
---      res <- liftIO $ runProcess "ghc" True ["--make",
--- "-DBACKEND=" ++ backend, effectSrcFile, "-o", effectExeFile] Nothing
+      res <- liftIO $ Plugins.make effectSrcFile ["-DMODULE_NAME=" ++ hash]
       case res of
         MakeSuccess _  objectFile -> return (Right objectFile)
         MakeFailure errors        -> return (Left (concat $ intersperse "\n" errors))

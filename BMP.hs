@@ -7,8 +7,14 @@ import Data.Array.Accelerate.Array.BlockCopy
 import Control.Monad
 import Codec.BMP
 import Data.ByteString
-
 import System.IO
+#ifdef HAS_CUDA
+import Data.Array.Accelerate.CUDA as Backend
+#else
+import Data.Array.Accelerate.Interpreter as Backend
+#endif
+
+
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 -- Image I/O
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,9 +55,8 @@ toGray = Acc.fold (+) (constant 0) . Acc.map (`div` 3)
 toRgb :: Acc (Array DIM2 Int) -> Acc (Array DIM3 Int)
 toRgb = Acc.replicate (constant (Z :. All :. All :. (4::Int)))
 
-runEffectJob :: (Array DIM3 Word8 -> Array DIM3 Word8) -> (String, String) -> IO ()
+runEffectJob :: (Array DIM3 Word8 -> Acc (Array DIM3 Word8)) -> (String, String) -> IO ()
 runEffectJob job (imageInBmp, imageOutBmp) = do
   arrIn  <- bmpToArray imageInBmp
-  let arrOut = job arrIn
+  let arrOut = Backend.run $ job $ arrIn
   arrayToBmp imageOutBmp arrOut
-
