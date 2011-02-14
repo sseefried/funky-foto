@@ -37,7 +37,7 @@ executable         simple-server
                  , bytestring
                  , text
                  , persistent   >= 0.3.1.1
-                 , persistent-sqlite
+                 , persistent-sqlite < 0.4
                  , template-haskell
                  , hamlet
                  , web-routes
