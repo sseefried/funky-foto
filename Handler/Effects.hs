@@ -105,7 +105,7 @@ createEffect = do
           -- FIXME: Will only succeed if someone else hasn't inserted a record in the mean time.
           -- Very unlikely but still possible.
           effectKey <- runDB $ insert (Effect name defaultEffectCode True)
-          -- FIXME: Very small change it's been deleted in mean time
+          -- FIXME: Very small chance it's been deleted in mean time
           (Just effect) <- runDB $ get effectKey
           showEffect effect
         Just _ -> do
@@ -150,7 +150,6 @@ updateEffect name = do
                defaultLayout $ do
                  addWidget $(widgetFile "effects/edit")
                  addWidget $(widgetFile "effects/preview")
-
      Nothing -> error "die die die"-- FIXME: Need to handle this gracefully.
 
 

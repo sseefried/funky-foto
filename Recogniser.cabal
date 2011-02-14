@@ -43,6 +43,8 @@ executable         simple-server
                  , web-routes
                  , hjsmin       >= 0.0.4   && < 0.1
                  , bmp
+                 , accelerate >= 0.9
+                 , plugins >= 1.5
                  , unix
                  , filepath
     ghc-options:   -Wall -threaded

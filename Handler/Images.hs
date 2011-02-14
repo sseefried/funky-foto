@@ -24,14 +24,16 @@ import Control.Concurrent.MVar
 import qualified Data.ByteString.Lazy       as BL
 import qualified Data.ByteString.Lazy.Char8 as C
 import Data.List
-import System.IO
+
 import System.Directory
 import System.FilePath
 import System.Cmd
-import System.Posix.Types
-import System.Posix.IO
-import System.Posix.Process
-import System.Exit
+import Char
+
+
+
+import System.Plugins as Plugins
+import Text.Printf
 
 import Yesod.Helpers.Static
 
@@ -40,7 +42,7 @@ import Yesod.Helpers.Static
 import Foundation
 import Settings
 import Model
-
+import BMP
 
 -- | The dimensions to use for a scaled version of an image. If scaling is not
 --   to be performed (i.e. the original image), Nothing is returned.
@@ -201,13 +203,14 @@ compileEffect :: Effect -> Handler (Either String FilePath)
 compileEffect effect = do
   foundation <- getYesod
   let hash          = codeHash effect
+      modName       = let (x:xs) = hash in (toUpper x : xs)
       codeDir       = (cacheDir foundation) </> "code"
       effectSrcFile = codeDir </> hash <.> "hs"
-      effectExeFile = codeDir </> hash
+      effectObjectFile = codeDir </> hash <.> "o"
 
-  exists <- liftIO $ doesFileExist effectExeFile
+  exists <- liftIO $ doesFileExist effectObjectFile
   case exists of
-    True  -> return (Right effectExeFile)
+    True  -> return (Right effectObjectFile)
     False -> do
 #ifdef HAS_CUDA
       let backend = "CUDA"
@@ -215,11 +218,14 @@ compileEffect effect = do
       let backend = "Interpreter"
 #endif
       liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ (indent $ effectCode effect)
-      res <- liftIO $ runProcess "ghc" True ["--make", "-DBACKEND=" ++ backend, effectSrcFile, "-o", effectExeFile] Nothing
 
+
+      res <- liftIO $ Plugins.make effectSrcFile ["-DBACKEND=" ++ backend, "-DMODULE_NAME=" ++ modName]
+--      res <- liftIO $ runProcess "ghc" True ["--make",
+-- "-DBACKEND=" ++ backend, effectSrcFile, "-o", effectExeFile] Nothing
       case res of
-        (Just output) -> return (Left output)
-        Nothing       -> return (Right effectExeFile)
+        MakeSuccess _  objectFile -> return (Right objectFile)
+        MakeFailure errors        -> return (Left (concat $ intersperse "\n" errors))
 
   where
     indent = concat . intersperse "\n" . map ("    " ++) . lines
@@ -229,7 +235,7 @@ compileEffect effect = do
 --   image file format. Remove the bitmap files on completion.
 --
 runEffect :: FilePath -> FilePath -> FilePath -> Handler ()
-runEffect effectBin imageInJpg imageOutJpg = do
+runEffect effectObjectPath imageInJpg imageOutJpg = do
   foundation <- getYesod
   scratchDir <- liftIO $ getTemporaryDirectory
 
@@ -238,11 +244,17 @@ runEffect effectBin imageInJpg imageOutJpg = do
 
   liftIO $ withMVar (cudaLock foundation) $ \() -> do
     liftIO $ jpgToBmp imageInJpg imageInBmp
-    _ <- runProcess effectBin False [imageInBmp, imageOutBmp] Nothing
-    liftIO $ bmpToJpg imageOutBmp imageOutJpg
-  _ <- liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
 
-  return ()
+    res <- Plugins.load effectObjectPath [] [] "job" -- False [imageInBmp, imageOutBmp] Nothing
+    case res of
+      LoadSuccess _ job -> do
+        runEffectJob job (imageInBmp, imageOutBmp)
+        _ <- liftIO $ bmpToJpg imageOutBmp imageOutJpg
+        _ <- liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
+        return ()
+      LoadFailure errors -> do
+        _ <- liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
+        error (printf "Error loading '%s': %s" effectObjectPath (concat errors))
 
 
 -- | Convert a JPEG file to a bitmap file.
@@ -255,32 +267,3 @@ jpgToBmp jpgFile bmpFile = rawSystem "convert" [jpgFile, bmpFile] >> return ()
 --
 bmpToJpg :: FilePath -> FilePath -> IO ()
 bmpToJpg bmpFile jpgFile = rawSystem "convert" [bmpFile, jpgFile] >> return ()
-
-
--- | Run a separate process, redirecting stdout to the returned string.
---
-runProcess :: FilePath
-           -> Bool
-           -> [String]
-           -> Maybe [(String, String)]
-           -> IO (Maybe String)
-runProcess cmd path args env = do
-  (outr, outw) <- createPipe
-  cpid   <- forkProcess $ doProcess outw
-
-  closeFd outw
-  hr     <- fdToHandle outr
-  outstr <- hGetContents hr
-  status <- getProcessStatus True False cpid
-
-  case status of
-    (Just (Exited ExitSuccess)) -> return Nothing
-    _                           -> return (Just outstr)
-
-  where
-    doProcess :: Fd -> IO ()
-    doProcess outw = do
-      _ <- dupTo outw stdOutput
-      _ <- dupTo outw stdError
-      executeFile cmd path args env
-
