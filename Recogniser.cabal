@@ -47,7 +47,8 @@ executable         simple-server
                  , plugins >= 1.5
                  , unix
                  , filepath
-    ghc-options:   -Wall -threaded
+    -- Please DO NOT add the -threaded flag since this will cause problems with CUDA contexts.
+    ghc-options:   -Wall -O2
     extensions:    TemplateHaskell, QuasiQuotes, TypeFamilies
 
 executable         devel-server
