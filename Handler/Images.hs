@@ -139,7 +139,7 @@ generateImage effect inImgFile outImgFile = do
       compileRes <- compileEffect effect
       case compileRes of
         (Left errors)       -> do
-          liftIO $ printf "Error compiling effect: %s\n" errors
+          _ <- liftIO $ printf "Error compiling effect: %s\n" errors
           return False
         (Right (extension, objectFile)) -> do
           runEffect extension objectFile inImgFile outImgFile
@@ -238,24 +238,27 @@ runEffect extension effectObjectPath imageInJpg imageOutJpg = do
   scratchDir <- liftIO $ getTemporaryDirectory
   let imageInBmp   = scratchDir </> "in"  <.> "bmp"
       imageOutBmp  = scratchDir </> "out" <.> "bmp"
+      runner :: IO ()
       runner = do
         jpgToBmp imageInJpg imageInBmp
         res <- Plugins.load effectObjectPath [] [] ("job" ++ extension)
         case res of
           LoadSuccess modul job -> do
-      putStrLn "Loaded plugin..."
+            putStrLn "Loaded plugin..."
             runEffectJob job (imageInBmp, imageOutBmp)
             _ <- bmpToJpg imageOutBmp imageOutJpg
             _ <- mapM removeFile [imageInBmp, imageOutBmp]
             Plugins.unload modul
             return ()
           LoadFailure errors -> do
-      putStrLn "Plugin load failure"
+            putStrLn "Plugin load failure"
             _ <- mapM removeFile [imageInBmp, imageOutBmp]
             error (printf "Error loading '%s': %s" effectObjectPath (concat errors))
-
-      exceptionHandler e = putStrLn $ "Exception: " ++ (show (e :: SomeException))
-  liftIO $ withMVar (cudaLock foundation) $ \() -> runner
+      exceptionHandler :: SomeException -> IO ()
+      exceptionHandler e = do
+        putStrLn $ "Exception: " ++ (show (e :: SomeException))
+        E.throw e
+  liftIO $ withMVar (cudaLock foundation) $ \() -> E.catch runner exceptionHandler
 
 -- | Convert a JPEG file to a bitmap file.
 --
