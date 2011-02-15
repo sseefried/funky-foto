@@ -40,19 +40,6 @@ arrayToBmp bmpFile arr = do
     (Z :. h :. w :. _) = arrayShape arr
 
 
--- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
--- Useful functions
--- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
--- | Convert RGBA image to grayscale.
---
-toGray :: Acc (Array DIM3 Int) -> Acc (Array DIM2 Int)
-toGray = Acc.fold (+) (constant 0) . Acc.map (`div` 3)
-
-
--- | Convert grayscale image to RGBA.
---
-toRgb :: Acc (Array DIM2 Int) -> Acc (Array DIM3 Int)
-toRgb = Acc.replicate (constant (Z :. All :. All :. (4::Int)))
 
 runEffectJob :: (Array DIM3 Word8 -> Acc (Array DIM3 Word8)) -> (String, String) -> IO ()
 runEffectJob job (imageInBmp, imageOutBmp) = do
