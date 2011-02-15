@@ -39,7 +39,7 @@ import System.Directory (doesFileExist)
 -- so this value must be accurate to create valid links.
 approot :: String
 #ifdef PRODUCTION
-approot = "http://funkyfotoapp.com"
+approot = "http://localhost:5000"
 #else
 approot = "http://localhost:3000"
 #endif

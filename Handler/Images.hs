@@ -138,7 +138,9 @@ generateImage effect inImgFile outImgFile = do
     False -> do
       compileRes <- compileEffect effect
       case compileRes of
-        (Left _)       -> return False
+        (Left errors)       -> do
+          liftIO $ printf "Error compiling effect: %s\n" errors
+          return False
         (Right (extension, objectFile)) -> do
           runEffect extension objectFile inImgFile outImgFile
           return True
@@ -217,7 +219,7 @@ compileEffect effect = do
   case exists of
     True  -> return (Right (hash, effectObjectFile))
     False -> do
-      liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ (indent $ effectCode effect)
+      liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ (indent $ effectCode effect) ++ "\n"
       res <- liftIO $ Plugins.make effectSrcFile ["-DMODULE_NAME=" ++ hash, "-DJOB=job" ++ hash]
       case res of
         MakeSuccess _  objectFile -> return (Right (hash, objectFile))
@@ -237,21 +239,23 @@ runEffect extension effectObjectPath imageInJpg imageOutJpg = do
   let imageInBmp   = scratchDir </> "in"  <.> "bmp"
       imageOutBmp  = scratchDir </> "out" <.> "bmp"
       runner = do
-        liftIO $ jpgToBmp imageInJpg imageInBmp
+        jpgToBmp imageInJpg imageInBmp
         res <- Plugins.load effectObjectPath [] [] ("job" ++ extension)
         case res of
           LoadSuccess modul job -> do
+      putStrLn "Loaded plugin..."
             runEffectJob job (imageInBmp, imageOutBmp)
-            _ <- liftIO $ bmpToJpg imageOutBmp imageOutJpg
-            _ <- liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
+            _ <- bmpToJpg imageOutBmp imageOutJpg
+            _ <- mapM removeFile [imageInBmp, imageOutBmp]
             Plugins.unload modul
             return ()
           LoadFailure errors -> do
-            _ <- liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
+      putStrLn "Plugin load failure"
+            _ <- mapM removeFile [imageInBmp, imageOutBmp]
             error (printf "Error loading '%s': %s" effectObjectPath (concat errors))
 
-      exceptionHandler e = printf "Exception: %s\n" (show (e :: SomeException))
-  liftIO $ withMVar (cudaLock foundation) $ \() -> E.catch runner exceptionHandler
+      exceptionHandler e = putStrLn $ "Exception: " ++ (show (e :: SomeException))
+  liftIO $ withMVar (cudaLock foundation) $ \() -> runner
 
 -- | Convert a JPEG file to a bitmap file.
 --
