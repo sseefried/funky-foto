@@ -244,7 +244,6 @@ runEffect extension effectObjectPath imageInJpg imageOutJpg = do
         res <- Plugins.load effectObjectPath [] [] ("job" ++ extension)
         case res of
           LoadSuccess modul job -> do
-            putStrLn "Loaded plugin..."
             runEffectJob job (imageInBmp, imageOutBmp)
             _ <- bmpToJpg imageOutBmp imageOutJpg
             _ <- mapM removeFile [imageInBmp, imageOutBmp]
