@@ -34,6 +34,7 @@ import System.Plugins as Plugins
 import Text.Printf
 
 import Yesod.Helpers.Static
+import Control.Exception as E hiding (Handler)
 
 -- friends
 import Foundation
@@ -138,8 +139,8 @@ generateImage effect inImgFile outImgFile = do
       compileRes <- compileEffect effect
       case compileRes of
         (Left _)       -> return False
-        (Right binary) -> do
-          runEffect binary inImgFile outImgFile
+        (Right (extension, objectFile)) -> do
+          runEffect extension objectFile inImgFile outImgFile
           return True
 
 
@@ -204,7 +205,7 @@ codeHash effect = tidy $ base64md5 $ C.pack (effectCode effect)
 -- | Compile the effect code. Return either the path to the compiled binary (Right) or
 --   the compiler error (Left).
 --
-compileEffect :: Effect -> Handler (Either String FilePath)
+compileEffect :: Effect -> Handler (Either String (String, FilePath))
 compileEffect effect = do
   foundation <- getYesod
   let hash          = codeHash effect
@@ -214,12 +215,12 @@ compileEffect effect = do
 
   exists <- liftIO $ doesFileExist effectObjectFile
   case exists of
-    True  -> return (Right effectObjectFile)
+    True  -> return (Right (hash, effectObjectFile))
     False -> do
       liftIO $ writeFile effectSrcFile $ (effectCodeWrapper foundation) ++ (indent $ effectCode effect)
-      res <- liftIO $ Plugins.make effectSrcFile ["-DMODULE_NAME=" ++ hash]
+      res <- liftIO $ Plugins.make effectSrcFile ["-DMODULE_NAME=" ++ hash, "-DJOB=job" ++ hash]
       case res of
-        MakeSuccess _  objectFile -> return (Right objectFile)
+        MakeSuccess _  objectFile -> return (Right (hash, objectFile))
         MakeFailure errors        -> return (Left (concat $ intersperse "\n" errors))
 
   where
@@ -229,28 +230,28 @@ compileEffect effect = do
 -- | Obtain the CUDA lock then run the effect. Use bitmap files as the intermediate
 --   image file format. Remove the bitmap files on completion.
 --
-runEffect :: FilePath -> FilePath -> FilePath -> Handler ()
-runEffect effectObjectPath imageInJpg imageOutJpg = do
+runEffect :: String -> FilePath -> FilePath -> FilePath -> Handler ()
+runEffect extension effectObjectPath imageInJpg imageOutJpg = do
   foundation <- getYesod
   scratchDir <- liftIO $ getTemporaryDirectory
-
   let imageInBmp   = scratchDir </> "in"  <.> "bmp"
       imageOutBmp  = scratchDir </> "out" <.> "bmp"
+      runner = do
+        liftIO $ jpgToBmp imageInJpg imageInBmp
+        res <- Plugins.load effectObjectPath [] [] ("job" ++ extension)
+        case res of
+          LoadSuccess modul job -> do
+            runEffectJob job (imageInBmp, imageOutBmp)
+            _ <- liftIO $ bmpToJpg imageOutBmp imageOutJpg
+            _ <- liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
+            Plugins.unload modul
+            return ()
+          LoadFailure errors -> do
+            _ <- liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
+            error (printf "Error loading '%s': %s" effectObjectPath (concat errors))
 
-  liftIO $ withMVar (cudaLock foundation) $ \() -> do
-    liftIO $ jpgToBmp imageInJpg imageInBmp
-
-    res <- Plugins.load effectObjectPath [] [] "job" -- False [imageInBmp, imageOutBmp] Nothing
-    case res of
-      LoadSuccess _ job -> do
-        runEffectJob job (imageInBmp, imageOutBmp)
-        _ <- liftIO $ bmpToJpg imageOutBmp imageOutJpg
-        _ <- liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
-        return ()
-      LoadFailure errors -> do
-        _ <- liftIO $ mapM removeFile [imageInBmp, imageOutBmp]
-        error (printf "Error loading '%s': %s" effectObjectPath (concat errors))
-
+      exceptionHandler e = printf "Exception: %s\n" (show (e :: SomeException))
+  liftIO $ withMVar (cudaLock foundation) $ \() -> E.catch runner exceptionHandler
 
 -- | Convert a JPEG file to a bitmap file.
 --

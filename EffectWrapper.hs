@@ -9,8 +9,8 @@ import Data.Array.Accelerate.Array.BlockCopy  as ABC
 -- The user's acutal effect
 -- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-job :: Array DIM3 Word8 -> Acc (Array DIM3 Word8)
-job arr = Acc.map (intToWord8) $ effect $ Acc.map (word8ToInt) $ use arr
+JOB :: Array DIM3 Word8 -> Acc (Array DIM3 Word8)
+JOB arr = Acc.map (intToWord8) $ effect $ Acc.map (word8ToInt) $ use arr
   where
     -- Useful values to bring into scope
     arrDim       = arrayShape arr
